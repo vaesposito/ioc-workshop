@@ -8003,12 +8003,31 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   text-align: left;
   transition:
     border-color 140ms ease,
-    background-color 140ms ease;
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
-.ioc-journey-leg:hover {
-  border-color: color-mix(in srgb, var(--ioc-kicker) 50%, transparent);
-  background: color-mix(in srgb, var(--ioc-kicker) 7%, transparent);
+.ioc-journey-leg:hover,
+.ioc-journey-leg:focus-visible {
+  border-color: var(--ioc-kicker);
+  background: color-mix(in srgb, var(--ioc-kicker) 12%, transparent);
+  outline: none;
+}
+
+.ioc-journey-leg:hover .ioc-journey-what,
+.ioc-journey-leg:focus-visible .ioc-journey-what {
+  color: var(--ioc-kicker);
+}
+
+/* Says the whole step is the thing being clicked, not only its link. */
+.ioc-journey-leg:hover .ioc-journey-act,
+.ioc-journey-leg:focus-visible .ioc-journey-act {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ioc-journey-leg:active {
+  background: color-mix(in srgb, var(--ioc-kicker) 18%, transparent);
 }
 
 /* One step leading to the next, drawn across the gap between them. */

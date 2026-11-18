@@ -39,7 +39,7 @@ export function ConsoleJourney({ legs }: { legs: JourneyLeg[] }) {
           >
             <span className="ioc-journey-mark">{index + 1}</span>
             <span className="ioc-kicker">{leg.who}</span>
-            <span className="ioc-fg mt-1 block text-[12.5px] leading-[1.4]">
+            <span className="ioc-journey-what ioc-fg mt-1 block text-[12.5px] leading-[1.4]">
               {leg.what}
             </span>
             <span className="ioc-faint mt-1 block text-[11px] leading-[1.45] font-light">
