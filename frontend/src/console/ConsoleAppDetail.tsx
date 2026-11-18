@@ -26,6 +26,7 @@ import {
 import {
   COST_LOOSE,
   detailFor,
+  risksFor,
   usualCost,
   type AppDetail,
   type SessionRow,
@@ -305,9 +306,12 @@ export function ConsoleAppDetail() {
   const bad =
     (detail?.summary.maliciousTraces ?? 0) +
     mine.filter((entry) => entry.verdict === "malicious").length;
-  const rough = (detail?.sessions ?? []).filter(
-    (run) => run.status === "error" && !verdictOf(run),
-  ).length;
+  // What the observability scope has against the sessions nobody has
+  // looked into yet: errors, cognitive failures, cost over the usual, and
+  // weak readings. Risks, not findings.
+  const risks = risksFor(detail?.sessions ?? [], (run) =>
+    Boolean(verdictOf(run)),
+  );
   const alerts: Guidance[] = !detail
     ? []
     : [
@@ -342,9 +346,9 @@ export function ConsoleAppDetail() {
           hint:
             bad > 0
               ? "An investigation traced these sessions back to where they started; what it found can be enforced from the session's own page."
-              : "Refused calls and sessions that ended badly are risks, not findings. An investigation is what turns one into the other.",
+              : "Error rates, cognitive failures, cost and quality readings all come from the observability scope. They are risks, not findings; an investigation is what turns one into the other.",
           label: bad > 0 ? "Security issues" : "Potential security risks",
-          count: bad > 0 ? bad : detail.summary.deniedCalls + rough,
+          count: bad > 0 ? bad : risks.length,
           grave: bad > 0,
           settled: false,
           standing:

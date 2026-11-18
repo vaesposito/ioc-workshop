@@ -36,7 +36,7 @@ import {
   ProtocolsSection,
   ReasoningSection,
 } from "./AppSections";
-import { detailFor } from "./appDetailData";
+import { detailFor, risksFor } from "./appDetailData";
 import type {
   AppDetail,
   ReasoningColumn,
@@ -564,9 +564,9 @@ export function ConsoleTraceView() {
     },
   ];
 
-  const broke = session.timeline.filter(
-    (span) => span.status === "error",
-  ).length;
+  // What the observability scope has against this session on its own: the
+  // same reading the application lists it under.
+  const risks = risksFor(detail.sessions, (run) => run.id !== session.id);
   // The protocols this session ran under, which is what the banner can
   // claim is configured.
   const protocol = session.protocols.length > 0;
@@ -626,9 +626,9 @@ export function ConsoleTraceView() {
         }
       : {
           id: "security",
-          hint: "A step that errored and a fault carried into the answer are risks, not findings. An investigation is what turns one into the other.",
+          hint: "Errors, cognitive failures, cost against the usual and weak readings all come from the observability scope. They are risks, not findings; an investigation is what turns one into the other.",
           label: "Potential security risks",
-          count: broke + (session.failures > 0 ? 1 : 0),
+          count: risks.length,
           settled: false,
           standing:
             probe === "running"

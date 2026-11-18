@@ -662,6 +662,89 @@ export function usualCost(sessions: SessionRow[]): number {
 /** How far over the usual a session has to run before it is worth saying. */
 export const COST_LOOSE = 1.2;
 
+/** A reading weak enough to be worth saying, as a share of one. */
+export const READING_WEAK = 0.75;
+
+/** One thing the observability scope saw that is off enough to look at. */
+export interface RiskSign {
+  id: string;
+  /** The session it was seen in. */
+  run: string;
+  /** How far off it is, which is what the list is ordered on. */
+  weight: number;
+  said: string;
+  why: string;
+}
+
+/**
+ * What is off on an application before anybody has investigated anything.
+ * Everything here comes from the observability scope watching the system
+ * run — sessions that errored, reasoning that broke down, cost against what
+ * the application usually spends, and readings that came back weak. None of
+ * it is a finding; an investigation is what would turn one into that.
+ */
+export function risksFor(
+  sessions: SessionRow[],
+  investigated: (run: SessionRow) => boolean = (run) => run.investigated,
+): RiskSign[] {
+  const usual = usualCost(sessions);
+  return sessions
+    .filter((run) => !investigated(run))
+    .flatMap((run) => {
+      const over = usual > 0 ? run.costScore / usual - 1 : 0;
+      const weak = run.readings.filter(
+        (reading) => reading.value < READING_WEAK,
+      );
+      const worst = weak.reduce(
+        (low, reading) => (low && low.value <= reading.value ? low : reading),
+        weak[0],
+      );
+      return [
+        run.status === "error"
+          ? {
+              id: `${run.id}-error`,
+              run: run.id,
+              weight: 6,
+              said: "Session ended in error",
+              why: "A step errored and the run carried on without what it asked for.",
+            }
+          : null,
+        run.failures >= 2
+          ? {
+              id: `${run.id}-failures`,
+              run: run.id,
+              weight: run.failures,
+              said: `${run.failures} cognitive failures in one session`,
+              why: "Reasoning that broke down this often is either a bad run or a pushed one.",
+            }
+          : null,
+        over >= COST_LOOSE - 1
+          ? {
+              id: `${run.id}-cost`,
+              run: run.id,
+              weight: over * 10,
+              said: `Cost ${Math.round(over * 100)}% over the usual session`,
+              why: `${run.costScore} against the ${usual} this application usually spends.`,
+            }
+          : null,
+        worst
+          ? {
+              id: `${run.id}-reading`,
+              run: run.id,
+              weight: (READING_WEAK - worst.value) * 20,
+              said: `${worst.label} came back at ${Math.round(worst.value * 100)}%`,
+              why:
+                weak.length > 1
+                  ? `${weak.length} of this session's readings are under ${Math.round(READING_WEAK * 100)}%.`
+                  : "An answer this far off what was asked is worth reading back.",
+            }
+          : null,
+      ];
+    })
+    .filter((sign): sign is RiskSign => sign !== null)
+    .sort((left, right) => right.weight - left.weight);
+}
+
 const PROTOCOLS: Protocol[] = [
   {
     code: "ACCORD",

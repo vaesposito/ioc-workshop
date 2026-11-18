@@ -18,6 +18,7 @@ import { ConsoleTraceRow } from "./ConsoleTraceRow";
 import { setProtocols, useConsoleStanding } from "./consoleStanding";
 import { compact } from "./consoleData";
 import {
+  risksFor,
   usualCost,
   type AppDetail,
   type Protocol,
@@ -87,36 +88,11 @@ export function SecuritySection({ detail, pick, onPick }: Props) {
     .filter((row) => row.calls > 0)
     .sort((left, right) => right.calls - left.calls);
 
-  // What is off in a way worth a look: a session that broke down, and a
-  // session that cost well over what the rest of them cost.
+  // What is off in a way worth a look, all of it from the observability
+  // scope: sessions that errored, reasoning that broke down, cost against
+  // the usual, and readings that came back weak.
   const usual = usualCost(detail.sessions);
-  const signs = detail.sessions
-    .flatMap((run) => {
-      const over = usual > 0 ? run.costScore / usual - 1 : 0;
-      return [
-        run.failures >= 2
-          ? {
-              id: `${run.id}-failures`,
-              run: run.id,
-              weight: run.failures,
-              said: `${run.failures} cognitive failures in one session`,
-              why: "Reasoning that broke down this often is either a bad run or a pushed one.",
-            }
-          : null,
-        over >= 0.2
-          ? {
-              id: `${run.id}-cost`,
-              run: run.id,
-              weight: over * 10,
-              said: `Cost ${percent(over)} over the usual session`,
-              why: `${run.costScore} against the ${usual} this application usually spends.`,
-            }
-          : null,
-      ];
-    })
-    .filter((sign): sign is NonNullable<typeof sign> => sign !== null)
-    .sort((left, right) => right.weight - left.weight)
-    .slice(0, 6);
+  const signs = risksFor(detail.sessions).slice(0, 6);
 
   return (
     <div>
@@ -143,8 +119,10 @@ export function SecuritySection({ detail, pick, onPick }: Props) {
           way an attack would make them off, which is reason enough to look. */}
       <p className="ioc-kicker mt-7">Worth exploring</p>
       <p className="ioc-faint text-[11px] font-light">
-        Sessions that broke down or cost more than they should. None of this is
-        a security issue yet; an investigation is what would say.
+        What the observability scope saw go wrong: sessions that errored,
+        reasoning that broke down, cost over the usual, and readings that came
+        back weak. None of it is a security issue yet; an investigation is what
+        would say.
       </p>
       {signs.length === 0 ? (
         <p className="ioc-faint mt-2 text-[11.5px] font-light">
