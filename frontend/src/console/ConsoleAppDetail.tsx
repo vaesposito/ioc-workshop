@@ -360,12 +360,22 @@ export function ConsoleAppDetail() {
                   ? `${looked} of ${detail.sessions.length} traces investigated, nothing malicious found`
                   : "Nothing investigated yet",
           onOpen: () => setView("security"),
+          // A session is investigated once. With every one of them looked
+          // into, what is left is to read what came back.
           action: {
             label:
-              probe === "running" ? "Investigating…" : "Start an investigation",
+              probe === "running"
+                ? "Investigating…"
+                : open.length === 0
+                  ? "See what was found"
+                  : "Start an investigation",
             icon: <LuScanSearch size={14} aria-hidden />,
             onAct: () => {
-              if (probe === "running" || open.length === 0) return;
+              if (probe === "running") return;
+              if (open.length === 0) {
+                setView("security");
+                return;
+              }
               setChosen(advised);
               setChoosing(true);
             },

@@ -613,13 +613,15 @@ export function ConsoleTraceView() {
             const first = trace.find((entry) => entry.status === "error");
             if (first) goTo(first.id);
           },
+          // A session is investigated once; from here the step is to read
+          // what came back, not to run it again.
           action: {
-            label: "Start an investigation",
+            label: "See what it found",
             icon: <LuScanSearch size={14} aria-hidden />,
-            onAct: () => {
-              setStep(0);
-              setProbe("running");
-            },
+            onAct: () =>
+              document
+                .querySelector('[data-tour="trace-findings"]')
+                ?.scrollIntoView({ behavior: "smooth", block: "start" }),
           },
         }
       : {
