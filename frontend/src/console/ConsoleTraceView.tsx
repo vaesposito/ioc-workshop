@@ -20,7 +20,8 @@ import { ConsoleTopology } from "./ConsoleTopology";
 import { ConsoleAlert, type Guidance } from "./ConsoleAlert";
 import { ConsoleEnforcement, type Standing } from "./ConsoleEnforcement";
 import { ConsoleProbe, PROBE_BEAT, PROBE_STEPS } from "./ConsoleProbe";
-import { readingFor } from "./consoleReading";
+import { findingsFor } from "./consoleReading";
+import { traceOf, type TraceEntry } from "./consoleTrace";
 import { ConsoleFindings } from "./ConsoleFindings";
 import {
   CostSection,
@@ -77,51 +78,6 @@ function band(value: number): string {
   if (value < 0.4) return "#f05252";
   if (value < 0.7) return "#f6a356";
   return "#04a4ca";
-}
-
-interface TraceEntry {
-  id: string;
-  at: number;
-  kind: "turn" | "agent" | "llm" | "tool";
-  actor: string;
-  title: string;
-  body?: string;
-  duration?: number;
-  status: "error" | "warn" | "ok";
-}
-
-/** The run itself, turns and spans in the order they happened. */
-function traceOf(session: SessionRow): TraceEntry[] {
-  const end = session.timeline.reduce(
-    (last, span) => Math.max(last, span.start + span.duration),
-    1,
-  );
-  const spoken: TraceEntry[] = session.turns.map((turn, index) => ({
-    id: `trace-turn-${index}`,
-    // The question opens the run, the rest fall where the work got to.
-    at: (index / Math.max(session.turns.length - 1, 1)) * end,
-    kind: "turn",
-    actor: turn.actor,
-    title: turn.role,
-    body: turn.text,
-    status: "ok",
-  }));
-  const worked: TraceEntry[] = session.timeline.map((span, index) => ({
-    id: `trace-span-${index}`,
-    at: span.start,
-    kind: span.kind,
-    actor: span.actor,
-    title: span.name,
-    body:
-      span.status === "error"
-        ? `${span.name} was called and came back an error after ${span.duration} ms. The session carried on without what it asked for.`
-        : span.status === "warn"
-          ? `${span.name} answered in ${span.duration} ms, late enough that the step after it went ahead on a partial result.`
-          : `${span.name} answered in ${span.duration} ms and the result was taken into the draft.`,
-    duration: span.duration,
-    status: span.status,
-  }));
-  return [...spoken, ...worked].sort((left, right) => left.at - right.at);
 }
 
 /**
@@ -509,21 +465,13 @@ export function ConsoleTraceView() {
 
   // What the investigation made of the agents, read the way an investigation
   // reads it: the same debate, carrying this session's names.
-  const tom =
-    looked && verdict ? readingFor(session, verdict, suspects, carried) : null;
-  const suspected = tom
-    ? tom.seats.filter((entry) => entry.detector?.label === "manipulator")
-        .length
+  const found =
+    looked && verdict
+      ? findingsFor({ detail, session, trace, verdict, suspects, carried })
+      : null;
+  const suspected = found
+    ? found.filter((entry) => entry.detector.label === "manipulator").length
     : 0;
-
-  const pointFor = (agent: string, index: number): string | null => {
-    const mine = trace.filter((entry) => entry.actor === agent);
-    const sore = mine.filter(
-      (entry) => entry.status !== "ok" || marks.has(entry.id),
-    );
-    const pool = sore.length > 0 ? sore : mine.length > 0 ? mine : trace;
-    return pool.length > 0 ? pool[index % pool.length].id : null;
-  };
 
   const flagged = session.timeline.filter(
     (span) => span.status !== "ok",
@@ -1040,7 +988,7 @@ export function ConsoleTraceView() {
 
             {/* The investigation's own account of each agent it suspects,
                 under this page's name for it. */}
-            {tom ? (
+            {found ? (
               <div className="mt-7" data-tour="trace-findings">
                 <DebateSection
                   label="Security findings"
@@ -1048,12 +996,11 @@ export function ConsoleTraceView() {
                   defaultOpen
                 >
                   <ConsoleFindings
-                    reading={tom}
+                    findings={found}
                     open={seat}
                     onToggle={(id) =>
                       setSeat((shown) => (shown === id ? null : id))
                     }
-                    pointAt={pointFor}
                     onOpen={(entryId) =>
                       goTo(entryId, verdict === "malicious" ? "bad" : undefined)
                     }

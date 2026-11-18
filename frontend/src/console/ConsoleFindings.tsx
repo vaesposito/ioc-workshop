@@ -1,6 +1,7 @@
 import { ExpandMark } from "../components/ExpandCue";
 import { AgentMark, SplitBar } from "../components/DebateReadingEvidence";
-import { seatTone, type DebateScenario } from "../utils/madDebates";
+import { seatTone } from "../utils/madDebates";
+import type { AgentFinding } from "./consoleReading";
 
 /** The detector works in shares of one; the list reads them as percentages. */
 function percent(score: number): string {
@@ -8,31 +9,27 @@ function percent(score: number): string {
 }
 
 /**
- * What the investigation found, agent by agent. The reading behind it is
- * scored round by round, but a session is read in phases rather than rounds,
- * so what is shown here is the case itself: how the agent was read, and the
- * things the detector wrote down about it.
+ * What the investigation found, agent by agent: how each one was read, and
+ * the points of the session the reading rests on. Only the agents something
+ * is held against are listed; the rest took their turn and nothing more.
  */
 export function ConsoleFindings({
-  reading,
+  findings,
   open,
   onToggle,
-  pointAt,
   onOpen,
 }: {
-  reading: DebateScenario;
+  findings: AgentFinding[];
   /** Which agent is unfolded, held by the page. */
   open: string | null;
-  onToggle: (seatId: string) => void;
-  /** Where in the trace a line about this agent was found, if anywhere. */
-  pointAt: (agent: string, index: number) => string | null;
+  onToggle: (id: string) => void;
   onOpen: (entryId: string) => void;
 }) {
-  const suspects = reading.seats.filter(
-    (seat) => seat.detector?.label === "manipulator",
+  const held = findings.filter(
+    (finding) => finding.detector.label !== "honest",
   );
 
-  if (suspects.length === 0) {
+  if (held.length === 0) {
     return (
       <p className="ioc-copy text-[13px] font-light leading-[1.55]">
         Nobody was read as working against the rest.
@@ -42,47 +39,30 @@ export function ConsoleFindings({
 
   return (
     <ul className="ioc-debate-agents">
-      {suspects.map((seat) => {
-        const read = seat.detector;
-        if (!read) return null;
-        const shown = open === seat.id;
-        // Everything the detector wrote about this agent, without the round
-        // it wrote it in and without saying the same thing twice.
-        const wrote = [
-          ...new Set(
-            reading.rounds
-              .filter((round) => read.keyRounds.includes(round.round))
-              .map(
-                (round) =>
-                  round.turns.find((turn) => turn.seat === seat.id)?.detector
-                    ?.summary,
-              )
-              .filter((line): line is string => Boolean(line)),
-          ),
-        ];
+      {held.map((finding) => {
+        const read = finding.detector;
+        const shown = open === finding.id;
         return (
           <li
-            key={seat.id}
-            className={`ioc-debate-agent${seatTone(seat)}${
+            key={finding.id}
+            className={`ioc-debate-agent${seatTone(finding)}${
               shown ? " is-open" : ""
             }`}
           >
             <button
               type="button"
-              onClick={() => onToggle(seat.id)}
+              onClick={() => onToggle(finding.id)}
               aria-expanded={shown}
-              className={`ioc-debate-agent-head${seatTone(seat)}`}
-              title={`Agent-ToM reads ${seat.name} as ${read.label}`}
+              className={`ioc-debate-agent-head${seatTone(finding)}`}
+              title={`Agent-ToM reads ${finding.name} as ${read.label}`}
             >
               <ExpandMark open={shown} />
-              <AgentMark seat={seat} />
-              <span className="ioc-fg">{seat.name}</span>
+              <AgentMark seat={finding} />
+              <span className="ioc-fg">{finding.name}</span>
               <span className="ioc-faint">{read.label}</span>
-              {read.score === null ? null : (
-                <span className="ioc-confidence-tag ioc-debate-agent-score">
-                  {percent(read.score)}
-                </span>
-              )}
+              <span className="ioc-confidence-tag ioc-debate-agent-score">
+                {percent(read.score)}
+              </span>
             </button>
             {shown ? (
               <div className="ioc-debate-agent-body">
@@ -90,30 +70,20 @@ export function ConsoleFindings({
                 <p className="ioc-copy mt-3 text-[12.5px] font-light leading-[1.55]">
                   {read.reading}
                 </p>
-                {wrote.length === 0 ? null : (
+                {finding.notes.length === 0 ? null : (
                   <ul className="mt-3 flex flex-col gap-1.5">
-                    {wrote.map((line, index) => {
-                      const point = pointAt(seat.name, index);
-                      if (!point) {
-                        return (
-                          <li key={line} className="ioc-console-wrote">
-                            {line}
-                          </li>
-                        );
-                      }
-                      return (
-                        <li key={line}>
-                          <button
-                            type="button"
-                            onClick={() => onOpen(point)}
-                            className="ioc-console-wrote is-link"
-                            title="Open where this was found in the trace"
-                          >
-                            {line}
-                          </button>
-                        </li>
-                      );
-                    })}
+                    {finding.notes.map((note) => (
+                      <li key={note.line}>
+                        <button
+                          type="button"
+                          onClick={() => onOpen(note.at)}
+                          className="ioc-console-wrote is-link"
+                          title="Open where this was found in the trace"
+                        >
+                          {note.line}
+                        </button>
+                      </li>
+                    ))}
                   </ul>
                 )}
               </div>

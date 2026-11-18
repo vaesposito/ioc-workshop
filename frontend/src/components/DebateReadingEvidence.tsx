@@ -41,7 +41,7 @@ export function agentAnchorId(seatId: string): string {
 }
 
 /** The glyph the trace gives this agent; the ring takes the row's tone. */
-export function AgentMark({ seat }: { seat: DebateSeat }) {
+export function AgentMark({ seat }: { seat: { model: string } }) {
   const Icon = vendorIcon(describeModel(seat.model).vendor);
   return (
     <span className="ioc-debate-agent-mark" aria-hidden>

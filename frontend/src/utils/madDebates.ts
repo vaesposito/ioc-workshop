@@ -384,7 +384,10 @@ export function turnTone(turn: DebateTurn | undefined): string {
   return "";
 }
 
-export function seatTone(seat: DebateSeat): string {
+export function seatTone(seat: {
+  adversary: boolean;
+  detector: { label: string; suspect: boolean } | null;
+}): string {
   if (seat.adversary || seat.detector?.suspect) {
     return " is-danger";
   }
