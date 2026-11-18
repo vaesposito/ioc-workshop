@@ -649,6 +649,7 @@ export function ConsoleTraceView() {
     const denied = taken.auth === "held";
     alerts.push({
       id: "deny",
+      kind: "offer",
       hint: "The investigation read these calls as the way the fault got in. Denying authorization stops them at the policy rather than in the answer.",
       label: `Recommended: deny authorization to ${tool}`,
       count: session.tools.length,
@@ -667,6 +668,7 @@ export function ConsoleTraceView() {
       const blocked = taken.block === "held";
       alerts.push({
         id: "block",
+        kind: "offer",
         hint: "Agent-ToM read one agent as driving the fault and the other as carried along by it.",
         label:
           suspects.length > 0

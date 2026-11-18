@@ -8331,6 +8331,9 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  /* What is wrong and what is proposed are read as two blocks, so the one
+     above keeps its distance from the rule under it. */
+  margin-bottom: 0.3rem;
 }
 
 /* One thing wrong, read across the page, with the step that answers it. */
