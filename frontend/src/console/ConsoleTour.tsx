@@ -27,8 +27,8 @@ export const CONSOLE_TOUR: TourStep[] = [
   {
     target: "apps-add",
     to: "/console",
-    title: "Create a MAS with the Cognition Fabric",
-    body: "Pointing the console at a multi-agent system registers it with the Cognition Fabric, which is what puts everything the rest of this tour reads in place.",
+    title: "Onboard a MAS onto the Cognition Fabric",
+    body: "Pointing the console at a multi-agent system onboards it onto the Cognition Fabric, which is what puts everything the rest of this tour reads in place.",
   },
   {
     target: "app-observability",

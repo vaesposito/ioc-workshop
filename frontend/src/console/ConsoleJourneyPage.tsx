@@ -85,7 +85,7 @@ export function ConsoleJourneyPage() {
   const legs: JourneyLeg[] = [
     {
       who: "Cognition Fabric",
-      what: "Create the MAS",
+      what: "Onboard the MAS",
       standing: `${stands.length} applications on the fabric, ${sum((entry) => entry.agents)} agents and ${sum((entry) => entry.tools)} tools between them`,
       onAct: () => navigate("/console"),
       done: true,
@@ -103,7 +103,7 @@ export function ConsoleJourneyPage() {
     },
     {
       who: "Cognition protocols",
-      what: "Improve performance",
+      what: "Improve cognition health and performance",
       standing:
         running.length > 0
           ? `${codes.join(" · ")} running on ${running.length} of ${stands.length} applications`
@@ -153,7 +153,7 @@ export function ConsoleJourneyPage() {
     <ConsoleShell>
       <p className="ioc-kicker">Journey</p>
       <h1 className="ioc-title mt-1 text-[26px] font-light">
-        From creating a MAS to watching it run
+        From onboarding a MAS to watching it run
       </h1>
       <p className="ioc-copy mt-2 max-w-[760px] text-[12.5px] leading-[1.6] font-light">
         Every step is a piece of the fabric doing its part, in the order it
