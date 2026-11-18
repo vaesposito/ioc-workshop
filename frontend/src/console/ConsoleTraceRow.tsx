@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-import type { SessionRow } from "./appDetailData";
+import { COST_LOOSE, type SessionRow } from "./appDetailData";
 
 /**
  * One run in a list of runs, written the same way wherever runs are listed:
@@ -10,16 +10,24 @@ import type { SessionRow } from "./appDetailData";
 export function ConsoleTraceRow({
   appId,
   session,
+  usual = 0,
   lit = false,
   far = false,
 }: {
   appId: string;
   session: SessionRow;
+  /** What a session on this application usually costs, where the list knows. */
+  usual?: number;
   /** Set where something picked on the page was part of this run. */
   lit?: boolean;
   /** Set where something is picked and this run had nothing to do with it. */
   far?: boolean;
 }) {
+  // A session that cost well over the rest of them: not a fault, but not
+  // what this application usually spends to answer.
+  const loose = usual > 0 && session.costScore >= usual * COST_LOOSE;
+  const over =
+    usual > 0 ? Math.round((session.costScore / usual - 1) * 100) : 0;
   return (
     <Link
       to={`/console/apps/${appId}/traces/${session.id}`}
@@ -43,8 +51,12 @@ export function ConsoleTraceRow({
           {session.failures} cognitive
         </span>
         <span
-          className="ioc-console-pill"
-          title="Cost against what the answer was worth, out of ten."
+          className={`ioc-console-pill${loose ? " is-warn" : ""}`}
+          title={
+            loose
+              ? `Cost ${session.costScore} against the ${usual} this application usually spends, ${over}% over. Worth a look at what it spent it on.`
+              : "Cost against what the answer was worth, out of ten."
+          }
         >
           cost {session.costScore}
         </span>

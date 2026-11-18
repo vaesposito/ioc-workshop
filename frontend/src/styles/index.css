@@ -7555,6 +7555,11 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   font-weight: 300;
 }
 
+.ioc-console-pill.is-warn {
+  border-color: color-mix(in srgb, #f6a356 45%, transparent);
+  color: #f6a356;
+}
+
 .ioc-console-pill.is-danger {
   border-color: color-mix(in srgb, var(--sev-danger) 45%, transparent);
   color: var(--sev-danger);

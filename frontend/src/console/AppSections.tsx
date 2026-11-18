@@ -18,6 +18,7 @@ import { ConsoleTraceRow } from "./ConsoleTraceRow";
 import { compact } from "./consoleData";
 import {
   PROTOCOL_OFFERS,
+  usualCost,
   type AppDetail,
   type Protocol,
   type ProtocolBlock,
@@ -88,10 +89,7 @@ export function SecuritySection({ detail, pick, onPick }: Props) {
 
   // What is off in a way worth a look: a session that broke down, and a
   // session that cost well over what the rest of them cost.
-  const spend = detail.sessions
-    .map((run) => run.costScore)
-    .sort((left, right) => left - right);
-  const usual = spend[Math.floor(spend.length / 2)] ?? 0;
+  const usual = usualCost(detail.sessions);
   const signs = detail.sessions
     .flatMap((run) => {
       const over = usual > 0 ? run.costScore / usual - 1 : 0;
@@ -220,7 +218,11 @@ export function SecuritySection({ detail, pick, onPick }: Props) {
           .filter((run) => run.status !== "ok" || run.investigated)
           .map((run) => (
             <li key={run.id}>
-              <ConsoleTraceRow appId={detail.app.id} session={run} />
+              <ConsoleTraceRow
+                appId={detail.app.id}
+                session={run}
+                usual={usual}
+              />
             </li>
           ))}
       </ul>

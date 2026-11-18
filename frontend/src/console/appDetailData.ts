@@ -648,6 +648,20 @@ const METRICS: MetricGroup[] = [
   },
 ];
 
+/**
+ * What a session on this application usually costs: the middle of them, so
+ * one runaway does not drag the mark it is read against.
+ */
+export function usualCost(sessions: SessionRow[]): number {
+  const spend = sessions
+    .map((run) => run.costScore)
+    .sort((left, right) => left - right);
+  return spend[Math.floor(spend.length / 2)] ?? 0;
+}
+
+/** How far over the usual a session has to run before it is worth saying. */
+export const COST_LOOSE = 1.2;
+
 /** A protocol that is not on this application yet, and what it would do. */
 export interface ProtocolOffer {
   code: string;

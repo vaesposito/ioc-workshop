@@ -21,7 +21,7 @@ import {
   SecuritySection,
   TopicsSection,
 } from "./AppSections";
-import { detailFor, type AppDetail } from "./appDetailData";
+import { detailFor, usualCost, type AppDetail } from "./appDetailData";
 import { ConsoleTopology } from "./ConsoleTopology";
 import { ConsoleOverview } from "./ConsoleOverview";
 import { isPicked, touches, type ConsolePick } from "./pick";
@@ -527,6 +527,7 @@ export function ConsoleAppDetail() {
             {detail.sessions.map((entry) => (
               <li key={entry.id}>
                 <ConsoleTraceRow
+                  usual={usualCost(detail.sessions)}
                   appId={detail.app.id}
                   session={entry}
                   lit={lit.has(entry.id)}
