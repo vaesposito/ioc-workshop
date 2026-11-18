@@ -1,34 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LuInfo, LuPlus, LuRoute } from "react-icons/lu";
+import { LuInfo, LuPlus } from "react-icons/lu";
 import { ConsoleDial } from "./ConsoleDial";
 import { CONSOLE_APPS, healthOf, type ConsoleApp } from "./consoleData";
 import { ConsoleShell } from "./ConsoleShell";
-import { ConsoleTour, type TourStep } from "./ConsoleTour";
-
-/** The walk through the page. Placeholder copy until the real words land. */
-const TOUR: TourStep[] = [
-  {
-    target: "apps-grid",
-    title: "Your multi-agent systems",
-    body: "Every application being watched, one card each. Placeholder copy — tell me what this step should say.",
-  },
-  {
-    target: "apps-dial",
-    title: "Health score",
-    body: "The two angles below, read as one figure: how well it runs, and how well it holds against being pushed at. Placeholder copy.",
-  },
-  {
-    target: "apps-stats",
-    title: "Where the trouble is",
-    body: "The two angles worth a glance: whether it is working, and whether it is being pushed at. Placeholder copy.",
-  },
-  {
-    target: "apps-add",
-    title: "Add a system",
-    body: "Point the console at another multi-agent system. Placeholder copy.",
-  },
-];
 
 /** The ring's two ends, and the light behind the card, per band. */
 const TONES = {
@@ -108,7 +83,6 @@ function appliedOf(app: ConsoleApp): { total: number; said: string } {
 export function ConsoleApps() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [touring, setTouring] = useState(false);
 
   const cards = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -124,19 +98,11 @@ export function ConsoleApps() {
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setTouring(true)}
-            className="ioc-btn-ghost"
-          >
-            <LuRoute size={14} />
-            Take a tour
-          </button>
-          <button
-            type="button"
             data-tour="apps-add"
             title="Not wired yet."
-            className="ioc-btn-primary"
+            className="ioc-console-act"
           >
-            <LuPlus size={14} />
+            <LuPlus size={13} />
             Add MAS
           </button>
         </div>
@@ -237,10 +203,6 @@ export function ConsoleApps() {
           );
         })}
       </div>
-
-      {touring ? (
-        <ConsoleTour steps={TOUR} onClose={() => setTouring(false)} />
-      ) : null}
 
       {cards.length === 0 ? (
         <p className="ioc-faint mt-6 text-[12px] font-light">

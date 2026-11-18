@@ -1,13 +1,54 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { LuX } from "react-icons/lu";
 
 export interface TourStep {
   /** The value of the data-tour attribute on the element being explained. */
   target: string;
+  /** The page the step is on, where it is not the one already open. */
+  to?: string;
   title: string;
   body: string;
 }
+
+/** A session Trip Planner has already had investigated, so the steps about
+    what an investigation leaves behind have something to point at. */
+const LOOKED = "/console/apps/trip-planner/traces/Session-3091";
+
+/** The walk through the console, in the order the work happens. */
+export const CONSOLE_TOUR: TourStep[] = [
+  {
+    target: "apps-add",
+    to: "/console",
+    title: "Add a multi-agent system",
+    body: "Pointing the console at a MAS triggers a cognition fabric flow, which is what puts everything the rest of this tour reads in place.",
+  },
+  {
+    target: "alert-quality",
+    to: "/console/apps/trip-planner",
+    title: "Performance comes from observability",
+    body: "Performance issues, and anything else you can read before an investigation, come from the observability scope watching the system run.",
+  },
+  {
+    target: "trace-findings",
+    to: LOOKED,
+    title: "What an inspection brings back",
+    body: "After an inspection, Detective security detection, CASA and the security active investigation CEs bring the security results and the enforcement propositions.",
+  },
+  {
+    target: "act-quality",
+    to: "/console/apps/trip-planner",
+    title: "L9 protocols answer performance",
+    body: "L9 protocols can be added to solve the performance issues the scope identified.",
+  },
+  {
+    target: "trace-enforcement",
+    to: LOOKED,
+    title: "Enforcement answers security",
+    body: "CASA and the security active investigation can enforce what they propose: denying authorizations and blocking agents.",
+  },
+];
 
 interface Box {
   top: number;
@@ -37,14 +78,30 @@ function boxOf(target: string): Box | null {
  */
 export function ConsoleTour({
   steps,
+  at,
+  onAt,
   onClose,
 }: {
   steps: TourStep[];
+  /** Which step is open. Held in the page's address, so the tour survives
+      walking from one page to the next. */
+  at: number;
+  onAt: (index: number) => void;
   onClose: () => void;
 }) {
-  const [at, setAt] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [box, setBox] = useState<Box | null>(null);
   const step = steps[at] ?? null;
+  const setAt = onAt;
+
+  // A step on another page takes the reader there first, keeping the step in
+  // the address so the page it lands on opens the tour again.
+  useEffect(() => {
+    if (step?.to && location.pathname !== step.to) {
+      navigate(`${step.to}?tour=${at}`, { replace: true });
+    }
+  }, [step, at, location.pathname, navigate]);
 
   // The page scrolls under the tour, so the light is measured again on every
   // paint rather than held from where the step opened.
@@ -54,12 +111,22 @@ export function ConsoleTour({
     }
     const measure = () => setBox(boxOf(step.target));
     measure();
-    document
-      .querySelector(`[data-tour="${step.target}"]`)
-      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // The page it is on may still be arriving, so the step keeps looking for
+    // a while rather than giving up on the first paint.
+    let tries = 0;
+    const hunt = window.setInterval(() => {
+      const node = document.querySelector(`[data-tour="${step.target}"]`);
+      tries += 1;
+      if (node) {
+        node.scrollIntoView({ behavior: "smooth", block: "center" });
+        measure();
+      }
+      if (node || tries > 40) window.clearInterval(hunt);
+    }, 60);
     window.addEventListener("scroll", measure, true);
     window.addEventListener("resize", measure);
     return () => {
+      window.clearInterval(hunt);
       window.removeEventListener("scroll", measure, true);
       window.removeEventListener("resize", measure);
     };
@@ -68,13 +135,12 @@ export function ConsoleTour({
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
-      if (event.key === "ArrowRight")
-        setAt((index) => Math.min(index + 1, steps.length - 1));
-      if (event.key === "ArrowLeft") setAt((index) => Math.max(index - 1, 0));
+      if (event.key === "ArrowRight") setAt(Math.min(at + 1, steps.length - 1));
+      if (event.key === "ArrowLeft") setAt(Math.max(at - 1, 0));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, steps.length]);
+  }, [at, onClose, setAt, steps.length]);
 
   if (!step || typeof document === "undefined") {
     return null;
@@ -146,7 +212,7 @@ export function ConsoleTour({
               <button
                 type="button"
                 onClick={() => setAt(at - 1)}
-                className="ioc-btn-ghost"
+                className="ioc-console-act is-quiet"
               >
                 Back
               </button>
@@ -154,7 +220,7 @@ export function ConsoleTour({
             <button
               type="button"
               onClick={() => (last ? onClose() : setAt(at + 1))}
-              className="ioc-btn-primary"
+              className="ioc-console-act"
             >
               {last ? "Done" : "Next"}
             </button>

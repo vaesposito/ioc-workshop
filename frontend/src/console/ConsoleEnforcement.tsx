@@ -1,3 +1,13 @@
+import type { ReactNode } from "react";
+import {
+  LuBan,
+  LuCheck,
+  LuClock,
+  LuLock,
+  LuPlay,
+  LuShieldX,
+} from "react-icons/lu";
+
 import type { AppDetail, SessionRow } from "./appDetailData";
 
 export type Standing = "open" | "held" | "let";
@@ -9,8 +19,8 @@ interface Move {
   /** What is being proposed off the back of it. */
   said: string;
   /** The two ways it can go, and how each reads once taken. */
-  hold: { label: string; taken: string };
-  let: { label: string; taken: string };
+  hold: { label: string; taken: string; icon: ReactNode };
+  let: { label: string; taken: string; icon: ReactNode };
 }
 
 /**
@@ -53,8 +63,16 @@ export function ConsoleEnforcement({
       id: "block",
       evidence: `${suspect} was read as driving the fault, and the answer went out carrying it.`,
       said: `Block ${suspect} until the behaviour is accounted for.`,
-      hold: { label: `Block ${suspect}`, taken: `${suspect} blocked` },
-      let: { label: "Keep running", taken: "Kept running" },
+      hold: {
+        label: `Block ${suspect}`,
+        taken: `${suspect} blocked`,
+        icon: <LuBan size={13} aria-hidden />,
+      },
+      let: {
+        label: "Keep running",
+        taken: "Kept running",
+        icon: <LuPlay size={13} aria-hidden />,
+      },
     },
     {
       id: "auth",
@@ -63,55 +81,73 @@ export function ConsoleEnforcement({
       hold: {
         label: `Block calls to ${tool}`,
         taken: `Calls to ${tool} blocked`,
+        icon: <LuLock size={13} aria-hidden />,
       },
-      let: { label: "Hold for approval", taken: "Held for approval" },
+      let: {
+        label: "Hold for approval",
+        taken: "Held for approval",
+        icon: <LuClock size={13} aria-hidden />,
+      },
     },
     {
       id: "deny",
       evidence: `${events[1]?.insight ?? events[0].insight} was raised on a call the policy does not cover.`,
       said: "Deny calls that fall outside the policy, rather than answering around them.",
-      hold: { label: "Deny outside policy", taken: "Denied outside policy" },
-      let: { label: "Allow as is", taken: "Allowed as is" },
+      hold: {
+        label: "Deny outside policy",
+        taken: "Denied outside policy",
+        icon: <LuShieldX size={13} aria-hidden />,
+      },
+      let: {
+        label: "Allow as is",
+        taken: "Allowed as is",
+        icon: <LuCheck size={13} aria-hidden />,
+      },
     },
   ];
 
   return (
-    <div>
-      <p className="ioc-kicker">Recommendations</p>
+    <div data-tour="trace-enforcement">
+      <p className="ioc-kicker">Enforcement</p>
       <p className="ioc-faint text-[11px] font-light">
         What the investigation of {session.id} leaves to decide. Whichever way
         each one goes is remembered on this page only.
       </p>
-      <ul className="mt-2 flex flex-col gap-2">
+      <ul className="mt-3 flex flex-col gap-2.5">
         {moves.map((move) => {
           const standing = taken[move.id] ?? "open";
           return (
-            <li key={move.id} className="ioc-console-move">
-              <p className="ioc-faint text-[10.5px] leading-[1.45] font-light">
-                {move.evidence}
-              </p>
-              <p className="ioc-copy mt-1 text-[12px] leading-[1.5] font-light">
+            <li
+              key={move.id}
+              className={`ioc-console-move${
+                standing === "open" ? "" : " is-settled"
+              }`}
+            >
+              <p className="ioc-console-move-found">{move.evidence}</p>
+              <p className="ioc-copy mt-1.5 text-[12px] leading-[1.5] font-light">
                 {move.said}
               </p>
               {standing === "open" ? (
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="ioc-console-move-acts">
                   <button
                     type="button"
                     onClick={() => settle(move.id, "held")}
-                    className="ioc-btn-primary"
+                    className="ioc-console-act"
                   >
+                    {move.hold.icon}
                     {move.hold.label}
                   </button>
                   <button
                     type="button"
                     onClick={() => settle(move.id, "let")}
-                    className="ioc-btn-ghost"
+                    className="ioc-console-act is-quiet"
                   >
+                    {move.let.icon}
                     {move.let.label}
                   </button>
                 </div>
               ) : (
-                <p className="mt-2 flex items-center gap-2">
+                <p className="ioc-console-move-acts">
                   <span
                     className={`ioc-console-chip${standing === "held" ? " is-bad" : ""}`}
                   >

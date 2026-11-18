@@ -1353,9 +1353,9 @@ export function ProtocolsSection({ detail, pick, onPick }: Props) {
         <button
           type="button"
           title="Not wired yet."
-          className="ioc-btn-primary"
+          className="ioc-console-act mt-2"
         >
-          <LuPlus size={14} />
+          <LuPlus size={13} />
           Add cognition protocol
         </button>
       </div>

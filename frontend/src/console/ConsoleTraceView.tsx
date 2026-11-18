@@ -1035,10 +1035,24 @@ export function ConsoleTraceView() {
               </ul>
             )}
 
+            {/* How the score on each agent moved while the session ran,
+                read beside the account the investigation gives of them. */}
+            {tom ? (
+              <div className="mt-7">
+                <DebateSection
+                  label="Manipulator score after each round"
+                  preview={`${tom.rounds.length} rounds`}
+                  defaultOpen
+                >
+                  <DebateScoreChart scenario={tom} />
+                </DebateSection>
+              </div>
+            ) : null}
+
             {/* The investigation's own account of each agent it suspects,
                 under this page's name for it. */}
             {tom ? (
-              <div className="mt-7">
+              <div className="mt-7" data-tour="trace-findings">
                 <DebateSection
                   label="Findings"
                   preview={`${suspected} suspected`}
@@ -1118,18 +1132,6 @@ export function ConsoleTraceView() {
           <p className="ioc-faint text-[11px] font-light">
             {trace.length} entries, in the order they happened.
           </p>
-
-          {tom ? (
-            <div className="ioc-hairline mt-3 border-b pb-4">
-              <DebateSection
-                label="Manipulator score after each round"
-                preview={`${tom.rounds.length} rounds`}
-                defaultOpen
-              >
-                <DebateScoreChart scenario={tom} />
-              </DebateSection>
-            </div>
-          ) : null}
 
           <div className="mt-3 flex flex-col gap-3">
             {legs.map((leg) => (

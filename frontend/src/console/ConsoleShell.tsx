@@ -3,12 +3,14 @@ import {
   LuCircleHelp,
   LuLayoutGrid,
   LuRotateCcw,
+  LuRoute,
   LuSearch,
   LuUser,
 } from "react-icons/lu";
 import { useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useSearchParams } from "react-router-dom";
 import { applyTheme, readStoredTheme } from "../utils/theme";
+import { CONSOLE_TOUR, ConsoleTour } from "./ConsoleTour";
 
 /**
  * The console's mark: three agents with a line to each of the others and a
@@ -60,6 +62,22 @@ export function ConsoleShell({
 }) {
   // The console is drawn dark and only dark, whatever the demo's pages are
   // set to; whatever that setting was comes back on the way out.
+  // The tour walks across pages, so which step it is on is kept in the
+  // address rather than in a page that is about to be left.
+  const [params, setParams] = useSearchParams();
+  const step = Number.parseInt(params.get("tour") ?? "", 10);
+  const touring = Number.isFinite(step);
+  const setStep = (index: number | null) =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (index === null) next.delete("tour");
+        else next.set("tour", `${index}`);
+        return next;
+      },
+      { replace: true },
+    );
+
   useEffect(() => {
     applyTheme("dark");
     return () => applyTheme(readStoredTheme());
@@ -88,6 +106,15 @@ export function ConsoleShell({
         </label>
 
         <div className="ml-auto flex items-center gap-1">
+          <button
+            type="button"
+            className="ioc-icon-btn"
+            aria-label="Take a tour"
+            title="Take a tour of the console"
+            onClick={() => setStep(0)}
+          >
+            <LuRoute size={15} />
+          </button>
           <button
             type="button"
             className="ioc-icon-btn"
@@ -136,6 +163,15 @@ export function ConsoleShell({
           </div>
         </main>
       </div>
+
+      {touring ? (
+        <ConsoleTour
+          steps={CONSOLE_TOUR}
+          at={Math.min(Math.max(step, 0), CONSOLE_TOUR.length - 1)}
+          onAt={setStep}
+          onClose={() => setStep(null)}
+        />
+      ) : null}
     </div>
   );
 }
