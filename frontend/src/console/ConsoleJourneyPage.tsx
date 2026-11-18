@@ -87,7 +87,6 @@ export function ConsoleJourneyPage() {
       who: "Cognition Fabric",
       what: "Create the MAS",
       standing: `${stands.length} applications on the fabric, ${sum((entry) => entry.agents)} agents and ${sum((entry) => entry.tools)} tools between them`,
-      act: "See the applications",
       onAct: () => navigate("/console"),
       done: true,
     },
@@ -98,7 +97,6 @@ export function ConsoleJourneyPage() {
         issues > 0
           ? `${issues} cognitive failures and ${risks} sessions worth exploring, most of them on ${sore.name}`
           : "Nothing standing against any of them",
-      act: "Read the failures",
       onAct: () => navigate(`${at(sore)}?view=failures`),
       done: true,
       grave: issues > 0,
@@ -110,10 +108,7 @@ export function ConsoleJourneyPage() {
         running.length > 0
           ? `${codes.join(" · ")} running on ${running.length} of ${stands.length} applications`
           : "None running anywhere",
-      act:
-        running.length === stands.length
-          ? "Tighten the protocols"
-          : "Put one on",
+      via: "via Agent bridge proxy",
       onAct: () => navigate(`${at(loose)}?view=protocols&picking=1`),
       done: running.length > 0,
     },
@@ -126,7 +121,6 @@ export function ConsoleJourneyPage() {
           : `${looked} of ${sessions} sessions investigated${
               bad > 0 ? `, ${bad} came back malicious` : ", nothing malicious"
             }`,
-      act: worst ? "Start an investigation" : "See what was found",
       onAct: () =>
         navigate(
           worst
@@ -143,7 +137,6 @@ export function ConsoleJourneyPage() {
         denied > 0
           ? `${denied} ${denied === 1 ? "call" : "calls"} denied at the proxy, most of them on ${held.name}`
           : "Nothing denied yet",
-      act: "Read the security",
       onAct: () => navigate(`${at(held)}?view=security`),
       done: denied > 0,
     },
@@ -151,7 +144,6 @@ export function ConsoleJourneyPage() {
       who: "Scope",
       what: "Ongoing monitoring",
       standing: `Watching ${sessions} sessions across ${stands.length} applications`,
-      act: "Read the metrics",
       onAct: () => navigate(`${at(watched)}?view=metrics`),
       done: true,
     },

@@ -1,5 +1,3 @@
-import { LuChevronRight } from "react-icons/lu";
-
 export interface JourneyLeg {
   /** What does it: the component of the fabric this step belongs to. */
   who: string;
@@ -7,7 +5,8 @@ export interface JourneyLeg {
   /** Where the console stands on this step, read from the same data the
       applications are read from. */
   standing: string;
-  act: string;
+  /** What carries the step out, where something else does the work. */
+  via?: string;
   onAct: () => void;
   /** Whether this step has happened anywhere yet. */
   done: boolean;
@@ -45,10 +44,9 @@ export function ConsoleJourney({ legs }: { legs: JourneyLeg[] }) {
             <span className="ioc-faint mt-1 block text-[11px] leading-[1.45] font-light">
               {leg.standing}
             </span>
-            <span className="ioc-journey-act">
-              {leg.act}
-              <LuChevronRight size={12} aria-hidden />
-            </span>
+            {leg.via ? (
+              <span className="ioc-journey-via">{leg.via}</span>
+            ) : null}
           </button>
         ))}
       </div>

@@ -8019,13 +8019,6 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   color: var(--ioc-kicker);
 }
 
-/* Says the whole step is the thing being clicked, not only its link. */
-.ioc-journey-leg:hover .ioc-journey-act,
-.ioc-journey-leg:focus-visible .ioc-journey-act {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
 .ioc-journey-leg:active {
   background: color-mix(in srgb, var(--ioc-kicker) 18%, transparent);
 }
@@ -8073,14 +8066,11 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   color: #f05252;
 }
 
-.ioc-journey-act {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  margin-top: 0.5rem;
-  color: var(--ioc-kicker);
-  font-size: 11px;
-  font-weight: 300;
+/* What carries the step out, where the work is handed to something else. */
+.ioc-journey-via {
+  margin-top: 0.4rem;
+  color: var(--ioc-faint);
+  font-size: 10.5px;
 }
 
 /* What the ring is, said above its key. */
