@@ -171,6 +171,8 @@ function Entry({
       id={entry.id}
       className={`ioc-chat-row ioc-chat-row-agent ioc-console-entry${
         found.length > 0 ? " is-found" : ""
+      }${entry.status === "error" ? " is-sore" : ""}${
+        entry.status === "warn" ? " is-slow" : ""
       }${calm ? " is-calm" : ""}${lit ? " is-lit" : ""}${
         struck ? " is-struck" : ""
       }${far ? " is-far" : ""}`}

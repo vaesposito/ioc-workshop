@@ -8429,12 +8429,37 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   gap: 0.5rem;
 }
 
-/* A point of the run a detector stopped at. */
-.ioc-console-entry.is-found .ioc-chat-bubble {
-  border-color: color-mix(in srgb, #f05252 55%, transparent);
+/* The marks on a point of the run are read in the console's own four
+   colours, so a mark and the border around the point it sits on are the
+   same red rather than two reds. */
+.ioc-console-entry .ioc-debate-flag.is-danger {
+  border-color: color-mix(in srgb, #f05252 45%, transparent);
+  color: #f05252;
 }
 
-.ioc-console-entry.is-found.is-lit .ioc-chat-bubble {
+.ioc-console-entry .ioc-debate-flag.is-watch {
+  border-color: color-mix(in srgb, #f6a356 45%, transparent);
+  color: #f6a356;
+}
+
+/* A step that came back late: worth seeing, not a fault. */
+.ioc-console-entry.is-slow .ioc-chat-bubble {
+  border-color: color-mix(in srgb, #f6a356 45%, transparent);
+}
+
+.ioc-console-entry.is-slow.is-lit .ioc-chat-bubble {
+  border-color: #f6a356;
+  background: color-mix(in srgb, #f6a356 10%, transparent);
+}
+
+/* A point of the run a detector stopped at, and a step that errored. */
+.ioc-console-entry.is-found .ioc-chat-bubble,
+.ioc-console-entry.is-sore .ioc-chat-bubble {
+  border-color: color-mix(in srgb, #f05252 45%, transparent);
+}
+
+.ioc-console-entry.is-found.is-lit .ioc-chat-bubble,
+.ioc-console-entry.is-sore.is-lit .ioc-chat-bubble {
   border-color: #f05252;
   background: color-mix(in srgb, #f05252 10%, transparent);
 }
@@ -8448,6 +8473,11 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
 .ioc-console-entry.is-found.is-calm.is-lit .ioc-chat-bubble {
   border-color: var(--ioc-kicker);
   background: color-mix(in srgb, var(--ioc-kicker) 10%, transparent);
+}
+
+.ioc-console-entry.is-found.is-calm .ioc-debate-flag.is-danger {
+  border-color: color-mix(in srgb, var(--ioc-kicker) 40%, transparent);
+  color: color-mix(in srgb, var(--ioc-kicker) 85%, var(--ioc-text));
 }
 
 /* Opened from a security finding on a session that came back malicious. */
