@@ -41,6 +41,7 @@ export function ConsoleDrawer({
         className="ioc-console-drawer-back"
       />
       <aside
+        data-tour="app-reading"
         className="ioc-console-drawer"
         role="dialog"
         aria-modal="true"

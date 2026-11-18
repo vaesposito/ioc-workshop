@@ -28,11 +28,11 @@ export const CONSOLE_TOUR: TourStep[] = [
     body: "Pointing the console at a MAS triggers a cognition fabric flow, which is what puts everything the rest of this tour reads in place.",
   },
   {
-    target: "alert-quality",
+    target: "app-observability",
     fallback: "alerts",
     to: "/console/apps/trip-planner",
     title: "Performance comes from observability",
-    body: "Performance issues, and anything else you can read before an investigation, come from the observability scope watching the system run.",
+    body: "Performance issues, and anything else you can read before an investigation, come from the observability scope watching the system run. Every reading here is taken from it.",
   },
   {
     target: "trace-findings",
@@ -42,11 +42,11 @@ export const CONSOLE_TOUR: TourStep[] = [
     body: "After an inspection, Detective security detection, CASA and the security active investigation CEs bring the security results and the enforcement propositions.",
   },
   {
-    target: "act-quality",
+    target: "app-reading",
     fallback: "alerts",
-    to: "/console/apps/trip-planner",
+    to: "/console/apps/trip-planner?view=protocols",
     title: "L9 protocols answer performance",
-    body: "L9 protocols can be added to solve the performance issues the scope identified.",
+    body: "L9 protocols can be added to solve the performance issues the scope identified. They are read and added here.",
   },
   {
     target: "trace-enforcement",
@@ -114,13 +114,22 @@ export function ConsoleTour({
   const step = steps[at] ?? null;
   const setAt = onAt;
 
-  // A step on another page takes the reader there first, keeping the step in
-  // the address so the page it lands on opens the tour again.
+  // A step takes the reader where it is about to point, keeping its number
+  // in the address so the page it lands on opens the tour again. A step can
+  // ask for a page in a particular state, which rides along in the address.
   useEffect(() => {
-    if (step?.to && location.pathname !== step.to) {
-      navigate(`${step.to}?tour=${at}`, { replace: true });
+    if (!step?.to) return;
+    const [path, query = ""] = step.to.split("?");
+    const want = new URLSearchParams(query);
+    want.set("tour", `${at}`);
+    const here = new URLSearchParams(location.search);
+    const settled =
+      location.pathname === path &&
+      [...want].every(([key, value]) => here.get(key) === value);
+    if (!settled) {
+      navigate(`${path}?${want}`, { replace: true });
     }
-  }, [step, at, location.pathname, navigate]);
+  }, [step, at, location.pathname, location.search, navigate]);
 
   // The page scrolls under the tour, so the light is measured again on every
   // paint rather than held from where the step opened.

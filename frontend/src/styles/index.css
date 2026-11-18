@@ -7084,6 +7084,11 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   margin-top: 0.9rem;
 }
 
+/* Skipping is an aside, not an offer: it reads at the size of a note. */
+.ioc-tour-card-foot .ioc-link {
+  font-size: 11px;
+}
+
 /* ── The console's application page: what it is made of, one reading at a
    time, and what has run through it. ───────────────────────────────────── */
 

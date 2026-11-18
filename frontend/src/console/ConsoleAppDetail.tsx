@@ -4,7 +4,12 @@ import {
   LuScanSearch,
   LuSlidersHorizontal,
 } from "react-icons/lu";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { DebateSection } from "../components/DebateSection";
 import {
   CostSection,
@@ -180,7 +185,13 @@ export function ConsoleAppDetail() {
   }, [probe, detail, target, navigate]);
   // Nothing is open until a reading is asked for, and then it comes over
   // the page rather than squeezing into the column.
-  const [view, setView] = useState<ViewId | null>(null);
+  // A reading can be asked for in the address, which is how the tour opens
+  // one before saying anything about it.
+  const [params] = useSearchParams();
+  const asked = params.get("view");
+  const [view, setView] = useState<ViewId | null>(
+    VIEWS.some((entry) => entry.id === asked) ? (asked as ViewId) : null,
+  );
   const reading = VIEWS.find((entry) => entry.id === view) ?? null;
   // One thing at a time is held across the three columns: picking it again
   // lets it go.
@@ -451,7 +462,7 @@ export function ConsoleAppDetail() {
             </div>
 
             <p className="ioc-kicker mt-7">Observability</p>
-            <ul className="ioc-console-triggers">
+            <ul className="ioc-console-triggers" data-tour="app-observability">
               {VIEWS.map((entry) => (
                 <li key={entry.id}>
                   <button
