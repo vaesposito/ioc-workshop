@@ -18,7 +18,6 @@ import { ConsoleTraceRow } from "./ConsoleTraceRow";
 import { setProtocols, useConsoleStanding } from "./consoleStanding";
 import { compact } from "./consoleData";
 import {
-  PROTOCOL_OFFERS,
   usualCost,
   type AppDetail,
   type Protocol,
@@ -1437,20 +1436,13 @@ export function ProtocolsSection({
     detail.protocols.map((entry) => entry.code);
   const [editing, setEditing] = useState(picking);
 
-  const offered = PROTOCOL_OFFERS.filter(
-    (offer) => !detail.protocols.some((entry) => entry.code === offer.code),
-  );
-  const rows = [
-    ...detail.protocols.map((entry) => ({
-      code: entry.code,
-      name: entry.name,
-      what: entry.what,
-    })),
-    ...offered,
-  ];
+  const rows = detail.protocols.map((entry) => ({
+    code: entry.code,
+    name: entry.name,
+    what: entry.what,
+  }));
   const left = rows.filter((row) => !on.includes(row.code));
   const live = detail.protocols.filter((entry) => on.includes(entry.code));
-  const added = offered.filter((offer) => on.includes(offer.code));
 
   const toggle = (code: string) => {
     if (on.includes(code)) {
@@ -1574,21 +1566,6 @@ export function ProtocolsSection({
           </div>
         ))}
       </div>
-
-      {added.length === 0 ? null : (
-        <ul className="mt-4 flex flex-col gap-1.5">
-          {added.map((offer) => (
-            <li key={offer.code} className="ioc-console-move is-settled">
-              <p className="ioc-fg text-[12.5px]">
-                {offer.code} · {offer.name}
-              </p>
-              <p className="ioc-faint mt-1 text-[11px] leading-[1.45] font-light">
-                Put on just now. Nothing has run under it yet.
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
 
       <div className="ioc-debate-stack mt-5">
         {live.map((protocol) => (
