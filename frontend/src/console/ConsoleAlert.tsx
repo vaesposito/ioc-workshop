@@ -35,6 +35,7 @@ export interface Guidance {
 function Banner({ item }: { item: Guidance }) {
   return (
     <li
+      data-tour={`alert-${item.id}`}
       className={`ioc-console-banner${item.grave && !item.settled ? " is-grave" : ""}${item.settled ? " is-settled" : ""}`}
     >
       {item.settled ? (
@@ -58,13 +59,18 @@ function Banner({ item }: { item: Guidance }) {
         · {item.standing}
       </span>
       {item.settled ? null : item.action.to ? (
-        <Link to={item.action.to} className="ioc-console-act ml-auto shrink-0">
+        <Link
+          to={item.action.to}
+          data-tour={`act-${item.id}`}
+          className="ioc-console-act ml-auto shrink-0"
+        >
           {item.action.icon}
           {item.action.label}
         </Link>
       ) : (
         <button
           type="button"
+          data-tour={`act-${item.id}`}
           onClick={item.action.onAct}
           className="ioc-console-act ml-auto shrink-0"
         >

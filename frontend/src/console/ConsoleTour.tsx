@@ -15,45 +15,48 @@ export interface TourStep {
   body: string;
 }
 
-/** A session Trip Planner has already had investigated, so the steps about
-    what an investigation leaves behind have something to point at. */
+/** A session Trip Planner has already had investigated, so the step about
+    what an investigation leaves behind has something to point at. */
 const LOOKED = "/console/apps/trip-planner/traces/Session-3091";
+/** One nobody has looked into, so the step about running an investigation
+    has the offer to run one on the page. */
+const FRESH = "/console/apps/trip-planner/traces/Session-2980";
 
 /** The walk through the console, in the order the work happens. */
 export const CONSOLE_TOUR: TourStep[] = [
   {
     target: "apps-add",
     to: "/console",
-    title: "Create a multi-agent system",
-    body: "Pointing the console at a MAS triggers a cognition fabric flow, which is what puts everything the rest of this tour reads in place.",
+    title: "Create a MAS with the Cognition Fabric",
+    body: "Pointing the console at a multi-agent system registers it with the Cognition Fabric, which is what puts everything the rest of this tour reads in place.",
   },
   {
     target: "app-observability",
     fallback: "alerts",
     to: "/console/apps/trip-planner",
-    title: "Performance comes from observability",
-    body: "Performance issues, and anything else you can read before an investigation, come from the observability scope watching the system run. Every reading here is taken from it.",
+    title: "Observability for the MAS with Scope",
+    body: "Scope watches the system run. Error rates, cognitive failures, cost and the quality readings — everything that can be said before an investigation — is taken from it.",
   },
   {
-    target: "trace-findings",
-    fallback: "trace-middle",
-    to: LOOKED,
-    title: "What an inspection brings back",
-    body: "After an inspection, Detective security detection, CASA and the security active investigation CEs bring the security results and the enforcement propositions.",
+    target: "act-security",
+    fallback: "alerts",
+    to: FRESH,
+    title: "Investigate for security findings",
+    body: "What Scope sees is a risk, not a finding. Running an investigation puts the Detective Active Investigation and Security Detection CEs through the session, and they are what come back with the security findings.",
   },
   {
     target: "protocol-picks",
     fallback: "app-reading",
     to: "/console/apps/trip-planner?view=protocols",
-    title: "L9 protocols answer performance",
-    body: "L9 protocols can be added to solve the performance issues the scope identified. They are read and added here.",
+    title: "L9 cognition protocols lift performance",
+    body: "L9 cognition protocols tighten how the agents share context and check each other. Putting one on is the step that answers the performance issues Scope identified.",
   },
   {
     target: "trace-enforcement",
     fallback: "trace-middle",
     to: LOOKED,
-    title: "Enforcement answers security",
-    body: "CASA and the security active investigation can enforce what they propose: denying authorizations and blocking agents.",
+    title: "Enforcement runs through the proxy",
+    body: "The Detective Active Investigation and CASA CEs decide what should be denied authorization or blocked. Detective blocks nothing itself: it programs the Enforcement Proxy through the Cognition Fabric enforcing APIs, and the proxy is what blocks, modifies or isolates. Building that proxy is outside Detective's charter.",
   },
 ];
 
