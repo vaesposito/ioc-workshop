@@ -1,0 +1,21 @@
+{
+  "app_id": "spam_filtering",
+  "technique": "evoguard-detective",
+  "memory_id": "preload_artifacts/spam_filtering/evoguard/memory/memory.json",
+  "memory_status": "ready",
+  "readiness_score": 92.0,
+  "playbook_path": "playbooks/final_playbook.txt",
+  "taxonomy_name": null,
+  "created_at": "2026-10-05T00:00:00.000000Z",
+  "updated_at": "2026-10-05T00:00:00.000000Z",
+  "memory_created_at": "2026-10-05T00:00:00.000000Z",
+  "training": {
+    "trained_total": 100,
+    "malicious_count": 63,
+    "benign_count": 37,
+    "scored_f1": 0.92,
+    "min_mem_n": 100,
+    "source_kind": "train_all_then_score",
+    "model": "azure/gpt-5"
+  }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "appId": "app-bank-transfer",
+    "techniques": {
+      "evoguard": true
+    }
+  },
+  {
+    "appId": "app-calendar",
+    "techniques": {
+      "evoguard": true
+    }
+  },
+  {
+    "appId": "app-american-airlines",
+    "techniques": {
+      "evoguard": true
+    }
+  },
+  {
+    "appId": "app-spam-filtering",
+    "techniques": {
+      "evoguard": true
+    }
+  }
+]

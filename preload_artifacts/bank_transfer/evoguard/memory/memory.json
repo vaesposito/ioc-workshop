@@ -1,0 +1,21 @@
+{
+  "app_id": "bank_transfer_2",
+  "technique": "evoguard-detective",
+  "memory_id": "/Users/nnafisi/exp/detective_agent_mem/evoguard_2_wt/memory_artifacts/bank_transfer_2/memory.json",
+  "memory_status": "ready",
+  "readiness_score": 92.0,
+  "playbook_path": "playbooks/final_playbook.txt",
+  "taxonomy_name": null,
+  "created_at": "2026-06-27T09:24:45.838563Z",
+  "updated_at": "2026-06-27T09:24:45.838565Z",
+  "memory_created_at": "2026-06-27T09:24:45.838516Z",
+  "training": {
+    "trained_total": 100,
+    "malicious_count": 63,
+    "benign_count": 37,
+    "scored_f1": 0.92,
+    "min_mem_n": 100,
+    "source_kind": "train_all_then_score",
+    "model": "azure/gpt-5"
+  }
+}

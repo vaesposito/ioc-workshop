@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detective Agent</title>
+    <script>
+      (function () {
+        var base = "/ioc-workshop";
+        var path = window.location.pathname;
+        var route = path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        route = route || "/";
+        var query = window.location.search;
+        var hash = window.location.hash;
+        sessionStorage.setItem("detective-pages-route", route + query + hash);
+        window.location.replace(base + "/");
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Loading Detective Agent...</p>
+  </body>
+</html>

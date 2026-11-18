@@ -1,0 +1,38 @@
+[
+  {
+    "traceFileId": "trace-bank-transfer-001",
+    "traceName": "malicious_2bc228d40820.json",
+    "appId": "app-bank-transfer",
+    "appName": "Bank Transfer",
+    "latestLabel": "malicious",
+    "latestInvestigationId": "investigation-bank-transfer-001",
+    "latestStatus": "completed",
+    "latestAnalyzedAt": "2026-09-15T20:20:53.030585Z",
+    "investigationsCount": 1,
+    "submittedAt": "2026-09-15T20:19:37.494117Z"
+  },
+  {
+    "traceFileId": "trace-calendar-001",
+    "traceName": "malicious_25f0a49d0b02.json",
+    "appId": "app-calendar",
+    "appName": "Calendar",
+    "latestLabel": "malicious",
+    "latestInvestigationId": "investigation-calendar-001",
+    "latestStatus": "completed",
+    "latestAnalyzedAt": "2026-09-15T20:02:13.597628Z",
+    "investigationsCount": 1,
+    "submittedAt": "2026-09-15T20:01:31.533290Z"
+  },
+  {
+    "traceFileId": "trace-code-panel-001",
+    "traceName": "malicious_livecodebench_q0001.json",
+    "appId": "app-code-panel",
+    "appName": "Coding Panel",
+    "latestLabel": "malicious",
+    "latestInvestigationId": null,
+    "latestStatus": null,
+    "latestAnalyzedAt": null,
+    "investigationsCount": 0,
+    "submittedAt": "2026-09-16T11:40:18.204117Z"
+  }
+]

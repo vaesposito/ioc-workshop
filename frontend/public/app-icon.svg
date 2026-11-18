@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">IOC</title>
+  <desc id="desc">Three agents passing messages between them</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1a24" />
+      <stop offset="100%" stop-color="#132b3a" />
+    </linearGradient>
+    <linearGradient id="wire" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#04a4ca" />
+      <stop offset="100%" stop-color="#7ee0f0" />
+    </linearGradient>
+  </defs>
+
+  <rect width="128" height="128" rx="26" fill="url(#bg)" />
+
+  <!-- The three agents, and the line each one holds to the other two. -->
+  <g stroke="url(#wire)" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.75">
+    <path d="M64 36 L34 88" />
+    <path d="M64 36 L94 88" />
+    <path d="M34 88 L94 88" />
+  </g>
+
+  <!-- A message in flight on each line. -->
+  <g fill="#e6fbff">
+    <circle cx="49" cy="62" r="3.5" />
+    <circle cx="79" cy="62" r="3.5" />
+    <circle cx="64" cy="88" r="3.5" />
+  </g>
+
+  <g fill="#04a4ca" stroke="#e6fbff" stroke-width="4">
+    <circle cx="64" cy="36" r="13" />
+    <circle cx="34" cy="88" r="13" />
+    <circle cx="94" cy="88" r="13" />
+  </g>
+</svg>

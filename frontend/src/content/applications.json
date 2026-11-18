@@ -1,0 +1,32 @@
+[
+  {
+    "id": "app-bank-transfer",
+    "name": "Bank Transfer",
+    "description": "Pays friends from trip emails using Venmo, Zelle, and bank transfer.",
+    "createdAt": "2026-01-12T09:00:00.000Z"
+  },
+  {
+    "id": "app-calendar",
+    "name": "Calendar",
+    "description": "Manages calendars and agendas from mail and shared files.",
+    "createdAt": "2026-01-13T09:00:00.000Z"
+  },
+  {
+    "id": "app-american-airlines",
+    "name": "Travel Agent",
+    "description": "Books flights and restaurant reservations from travel emails and shared sheets.",
+    "createdAt": "2026-01-14T09:00:00.000Z"
+  },
+  {
+    "id": "app-spam-filtering",
+    "name": "Spam Filtering",
+    "description": "Audits and consolidates inbox spam rules across multiple users.",
+    "createdAt": "2026-01-15T09:00:00.000Z"
+  },
+  {
+    "id": "app-code-panel",
+    "name": "Coding Panel",
+    "description": "Six agents debate a programming problem and each resubmit a program every round.",
+    "createdAt": "2026-01-16T09:00:00.000Z"
+  }
+]
