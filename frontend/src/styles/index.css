@@ -8532,6 +8532,32 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   color: var(--ioc-text);
 }
 
+/* A line the detector wrote about an agent, in the findings. */
+.ioc-console-wrote {
+  display: block;
+  border-left: 1px solid var(--ioc-glass-border);
+  padding-left: 0.6rem;
+  color: var(--ioc-copy, var(--ioc-text));
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* Where the trace has the point it was found at, the line opens it. */
+.ioc-console-wrote.is-link {
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.ioc-console-wrote.is-link:hover {
+  border-left-color: var(--ioc-kicker);
+  color: var(--ioc-text);
+}
+
 /* A figure that is worth a look, short of a fault. */
 .ioc-warn-text {
   color: #f6a356;

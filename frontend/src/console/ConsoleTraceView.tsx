@@ -21,8 +21,7 @@ import { ConsoleAlert, type Guidance } from "./ConsoleAlert";
 import { ConsoleEnforcement, type Standing } from "./ConsoleEnforcement";
 import { ConsoleProbe, PROBE_BEAT, PROBE_STEPS } from "./ConsoleProbe";
 import { readingFor } from "./consoleReading";
-import { DebateScoreChart } from "../components/DebateScoreChart";
-import { DebateReadingEvidence } from "../components/DebateReadingEvidence";
+import { ConsoleFindings } from "./ConsoleFindings";
 import {
   CostSection,
   MetricsSection,
@@ -521,6 +520,15 @@ export function ConsoleTraceView() {
     ? tom.seats.filter((entry) => entry.detector?.label === "manipulator")
         .length
     : 0;
+
+  const pointFor = (agent: string, index: number): string | null => {
+    const mine = trace.filter((entry) => entry.actor === agent);
+    const sore = mine.filter(
+      (entry) => entry.status !== "ok" || marks.has(entry.id),
+    );
+    const pool = sore.length > 0 ? sore : mine.length > 0 ? mine : trace;
+    return pool.length > 0 ? pool[index % pool.length].id : null;
+  };
 
   const flagged = session.timeline.filter(
     (span) => span.status !== "ok",
@@ -1035,38 +1043,23 @@ export function ConsoleTraceView() {
               </ul>
             )}
 
-            {/* How the score on each agent moved while the session ran,
-                read beside the account the investigation gives of them. */}
-            {tom ? (
-              <div className="mt-7">
-                <DebateSection
-                  label="Manipulator score after each round"
-                  preview={`${tom.rounds.length} rounds`}
-                  defaultOpen
-                >
-                  <DebateScoreChart scenario={tom} />
-                </DebateSection>
-              </div>
-            ) : null}
-
             {/* The investigation's own account of each agent it suspects,
                 under this page's name for it. */}
             {tom ? (
               <div className="mt-7" data-tour="trace-findings">
                 <DebateSection
-                  label="Findings"
+                  label="Security findings"
                   preview={`${suspected} suspected`}
                   defaultOpen
                 >
-                  <DebateReadingEvidence
-                    scenario={tom}
-                    round={null}
-                    clearestOnly
-                    suspectsOnly
-                    openSeatId={seat}
-                    onToggleSeat={(id) =>
+                  <ConsoleFindings
+                    reading={tom}
+                    open={seat}
+                    onToggle={(id) =>
                       setSeat((shown) => (shown === id ? null : id))
                     }
+                    pointAt={pointFor}
+                    onOpen={goTo}
                   />
                 </DebateSection>
               </div>
