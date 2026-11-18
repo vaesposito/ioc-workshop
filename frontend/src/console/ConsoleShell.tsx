@@ -138,23 +138,21 @@ export function ConsoleShell({
           <NavLink
             to="/console"
             end
-            title="Applications"
-            aria-label="Applications"
             className={({ isActive }) =>
               `ioc-console-rail-link${isActive ? " is-active" : ""}`
             }
           >
             <LuLayoutGrid size={17} />
+            Applications
           </NavLink>
           <NavLink
             to="/console/journey"
-            title="Journey"
-            aria-label="Journey"
             className={({ isActive }) =>
               `ioc-console-rail-link${isActive ? " is-active" : ""}`
             }
           >
             <LuWaypoints size={17} />
+            Journey
           </NavLink>
         </nav>
 

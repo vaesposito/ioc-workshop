@@ -6898,21 +6898,24 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
 .ioc-console-rail {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  width: 3.25rem;
-  padding: 0.85rem 0;
+  gap: 0.15rem;
+  /* Wide enough for each section to say what it is, rather than leaving the
+     icon to carry it. */
+  width: 10.5rem;
+  padding: 0.85rem 0.5rem;
   border-right: 1px solid var(--ioc-glass-border);
 }
 
 .ioc-console-rail-link {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 2.1rem;
+  gap: 0.55rem;
   height: 2.1rem;
+  padding: 0 0.6rem;
   border-radius: 0.5rem;
   color: var(--ioc-muted);
+  font-size: 12.5px;
+  font-weight: 300;
   cursor: pointer;
   transition:
     color 140ms ease,
