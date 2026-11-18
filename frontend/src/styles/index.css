@@ -8418,22 +8418,6 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   background: color-mix(in srgb, #f05252 12%, transparent);
 }
 
-/* One leg of a run: a spoken turn and the work it set off. */
-.ioc-console-leg {
-  display: flex;
-  width: 100%;
-  cursor: pointer;
-  align-items: center;
-  gap: 0.45rem;
-  border-bottom: 1px solid var(--ioc-glass-border);
-  padding-bottom: 0.35rem;
-  color: var(--ioc-faint);
-}
-
-.ioc-console-leg:hover {
-  color: var(--ioc-kicker);
-}
-
 /* One entry of the run, read the way a debate turn is read. */
 .ioc-console-entry-who {
   display: flex;

@@ -351,7 +351,6 @@ export function ConsoleTraceView() {
   // trace says in the colour it lights the entry with.
   const [struck, setStruck] = useState(false);
   const [opened, setOpened] = useState<Set<string>>(new Set());
-  const [folded, setFolded] = useState<Set<string>>(new Set());
   const [seat, setSeat] = useState<string | null>(null);
   const [taken, setTaken] = useState<Record<string, Standing>>({});
   const settle = (id: string, standing: Standing) =>
@@ -391,19 +390,7 @@ export function ConsoleTraceView() {
     setHeld(entryId);
     setStruck(tone === "bad");
     setOpened((current) => new Set(current).add(entryId));
-    // The point may be inside a phase that is folded away, so the phase is
-    // unfolded first and the scroll waits for it to be on the page.
-    const leg = legs.find((entry) =>
-      entry.entries.some((item) => item.id === entryId),
-    );
-    if (leg) {
-      setFolded((current) => {
-        if (!current.has(leg.id)) return current;
-        const next = new Set(current);
-        next.delete(leg.id);
-        return next;
-      });
-    }
+    // The scroll waits a beat for the entry to have opened on the page.
     window.setTimeout(() => {
       document
         .getElementById(entryId)
@@ -1123,9 +1110,6 @@ export function ConsoleTraceView() {
                 setOpened(
                   allOpen ? new Set() : new Set(trace.map((entry) => entry.id)),
                 );
-                setFolded(
-                  allOpen ? new Set(legs.map((leg) => leg.id)) : new Set(),
-                );
               }}
               className="ioc-link text-[11px]"
             >
@@ -1136,82 +1120,47 @@ export function ConsoleTraceView() {
             {trace.length} entries, in the order they happened.
           </p>
 
-          <div className="mt-3 flex flex-col gap-3">
-            {legs.map((leg) => (
-              <div key={leg.id}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFolded((current) => {
+          <ol className="ioc-chat mt-3">
+            {trace.map((entry) => {
+              const kind = entry.kind === "tool" ? "tool" : "agent";
+              const on =
+                entry.kind !== "turn" && isPicked(pick, kind, entry.actor);
+              return (
+                <Entry
+                  key={entry.id}
+                  entry={entry}
+                  found={marks.get(entry.id) ?? []}
+                  calm={looked && verdict !== "malicious"}
+                  struck={struck && held === entry.id}
+                  open={opened.has(entry.id)}
+                  lit={on || held === entry.id}
+                  far={Boolean(
+                    pick &&
+                    (pick.kind === "agent" || pick.kind === "tool") &&
+                    !on,
+                  )}
+                  onToggle={() =>
+                    setOpened((current) => {
                       const next = new Set(current);
-                      if (next.has(leg.id)) next.delete(leg.id);
-                      else next.add(leg.id);
+                      if (next.has(entry.id)) next.delete(entry.id);
+                      else next.add(entry.id);
                       return next;
                     })
                   }
-                  aria-expanded={!folded.has(leg.id)}
-                  className="ioc-console-leg"
-                >
-                  <LuChevronDown
-                    size={13}
-                    aria-hidden
-                    className={folded.has(leg.id) ? "-rotate-90" : ""}
-                  />
-                  <span className="ioc-kicker">{leg.label}</span>
-                  <span className="ioc-faint truncate text-[10.5px] font-light">
-                    {leg.said}
-                  </span>
-                  <span className="ioc-faint ml-auto text-[10.5px] font-light">
-                    {leg.entries.length}
-                  </span>
-                </button>
-                {folded.has(leg.id) ? null : (
-                  <ol className="ioc-chat mt-2">
-                    {leg.entries.map((entry) => {
-                      const kind = entry.kind === "tool" ? "tool" : "agent";
-                      const on =
-                        entry.kind !== "turn" &&
-                        isPicked(pick, kind, entry.actor);
-                      return (
-                        <Entry
-                          key={entry.id}
-                          entry={entry}
-                          found={marks.get(entry.id) ?? []}
-                          calm={looked && verdict !== "malicious"}
-                          struck={struck && held === entry.id}
-                          open={opened.has(entry.id)}
-                          lit={on || held === entry.id}
-                          far={Boolean(
-                            pick &&
-                            (pick.kind === "agent" || pick.kind === "tool") &&
-                            !on,
-                          )}
-                          onToggle={() =>
-                            setOpened((current) => {
-                              const next = new Set(current);
-                              if (next.has(entry.id)) next.delete(entry.id);
-                              else next.add(entry.id);
-                              return next;
-                            })
-                          }
-                          onPick={() => {
-                            setHeld(entry.id);
-                            if (entry.kind !== "turn") {
-                              choose({
-                                kind,
-                                id: entry.actor,
-                                label: entry.actor,
-                              });
-                            }
-                          }}
-                        />
-                      );
-                    })}
-                  </ol>
-                )}
-              </div>
-            ))}
-          </div>
+                  onPick={() => {
+                    setHeld(entry.id);
+                    if (entry.kind !== "turn") {
+                      choose({
+                        kind,
+                        id: entry.actor,
+                        label: entry.actor,
+                      });
+                    }
+                  }}
+                />
+              );
+            })}
+          </ol>
         </aside>
       </div>
 
