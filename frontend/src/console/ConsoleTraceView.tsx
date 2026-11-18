@@ -181,6 +181,7 @@ function Entry({
   entry,
   found,
   calm,
+  struck,
   open,
   lit,
   far,
@@ -192,6 +193,8 @@ function Entry({
   found: { code: string; label: string }[];
   /** An investigation came back clean, so nothing here is held against it. */
   calm: boolean;
+  /** Opened from a security finding, so it is lit as one. */
+  struck: boolean;
   open: boolean;
   lit: boolean;
   far: boolean;
@@ -205,7 +208,9 @@ function Entry({
       id={entry.id}
       className={`ioc-chat-row ioc-chat-row-agent ioc-console-entry${
         found.length > 0 ? " is-found" : ""
-      }${calm ? " is-calm" : ""}${lit ? " is-lit" : ""}${far ? " is-far" : ""}`}
+      }${calm ? " is-calm" : ""}${lit ? " is-lit" : ""}${
+        struck ? " is-struck" : ""
+      }${far ? " is-far" : ""}`}
     >
       <div className="ioc-chat-identity">
         <button
@@ -342,6 +347,9 @@ export function ConsoleTraceView() {
   const [view, setView] = useState<ViewId | null>(null);
   const [pick, setPick] = useState<ConsolePick | null>(null);
   const [held, setHeld] = useState<string | null>(null);
+  // Whether what sent the reader here was a security finding, which the
+  // trace says in the colour it lights the entry with.
+  const [struck, setStruck] = useState(false);
   const [opened, setOpened] = useState<Set<string>>(new Set());
   const [folded, setFolded] = useState<Set<string>>(new Set());
   const [l9, setL9] = useState(false);
@@ -380,8 +388,9 @@ export function ConsoleTraceView() {
     );
 
   /** Take the reader to the point in the trace something was found at. */
-  const goTo = (entryId: string) => {
+  const goTo = (entryId: string, tone?: "bad") => {
     setHeld(entryId);
+    setStruck(tone === "bad");
     setOpened((current) => new Set(current).add(entryId));
     // The point may be inside a phase that is folded away, so the phase is
     // unfolded first and the scroll waits for it to be on the page.
@@ -1059,7 +1068,9 @@ export function ConsoleTraceView() {
                       setSeat((shown) => (shown === id ? null : id))
                     }
                     pointAt={pointFor}
-                    onOpen={goTo}
+                    onOpen={(entryId) =>
+                      goTo(entryId, verdict === "malicious" ? "bad" : undefined)
+                    }
                   />
                 </DebateSection>
               </div>
@@ -1168,6 +1179,7 @@ export function ConsoleTraceView() {
                           entry={entry}
                           found={marks.get(entry.id) ?? []}
                           calm={looked && verdict !== "malicious"}
+                          struck={struck && held === entry.id}
                           open={opened.has(entry.id)}
                           lit={on || held === entry.id}
                           far={Boolean(

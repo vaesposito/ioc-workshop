@@ -8445,6 +8445,13 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   background: color-mix(in srgb, var(--ioc-kicker) 10%, transparent);
 }
 
+/* Opened from a security finding on a session that came back malicious. */
+.ioc-console-entry.is-struck .ioc-chat-bubble,
+.ioc-console-entry.is-found.is-struck .ioc-chat-bubble {
+  border-color: #f05252;
+  background: color-mix(in srgb, #f05252 14%, transparent);
+}
+
 .ioc-console-entry.is-lit .ioc-chat-bubble {
   border-color: color-mix(in srgb, var(--ioc-kicker) 65%, transparent);
   background: color-mix(in srgb, var(--ioc-kicker) 9%, transparent);
@@ -8532,11 +8539,25 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   color: var(--ioc-text);
 }
 
-/* A line the detector wrote about an agent, in the findings. */
+/* A line the detector wrote about an agent, in the findings: a card of its
+   own, edged in the tone the agent was read in. */
 .ioc-console-wrote {
   display: block;
-  border-left: 1px solid var(--ioc-glass-border);
-  padding-left: 0.6rem;
+  width: 100%;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--ioc-agent-tone, var(--ioc-kicker)) 28%,
+      var(--ioc-glass-border)
+    );
+  border-left: 2px solid
+    color-mix(
+      in srgb,
+      var(--ioc-agent-tone, var(--ioc-kicker)) 55%,
+      transparent
+    );
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.6rem;
   color: var(--ioc-copy, var(--ioc-text));
   font-size: 12px;
   font-weight: 300;
@@ -8545,16 +8566,25 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
 
 /* Where the trace has the point it was found at, the line opens it. */
 .ioc-console-wrote.is-link {
-  width: 100%;
   cursor: pointer;
   text-align: left;
   transition:
     border-color 140ms ease,
+    background-color 140ms ease,
     color 140ms ease;
 }
 
 .ioc-console-wrote.is-link:hover {
-  border-left-color: var(--ioc-kicker);
+  border-color: color-mix(
+    in srgb,
+    var(--ioc-agent-tone, var(--ioc-kicker)) 70%,
+    transparent
+  );
+  background: color-mix(
+    in srgb,
+    var(--ioc-agent-tone, var(--ioc-kicker)) 10%,
+    transparent
+  );
   color: var(--ioc-text);
 }
 

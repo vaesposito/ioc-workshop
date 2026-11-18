@@ -85,7 +85,7 @@ export function ConsoleFindings({
               )}
             </button>
             {shown ? (
-              <div className="px-3 pb-3">
+              <div className="ioc-debate-agent-body">
                 <SplitBar scores={read.scores} />
                 <p className="ioc-copy mt-3 text-[12.5px] font-light leading-[1.55]">
                   {read.reading}

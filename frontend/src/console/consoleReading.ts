@@ -42,5 +42,39 @@ export function readingFor(
     return name ? { ...seat, name } : seat;
   });
 
-  return { ...base, seats };
+  // The reading and the detector's notes name the agents as the debate
+  // numbered them, so they are renamed too and the page reads as one thing.
+  const renames = base.seats
+    .map((seat, index) => [seat.name, seats[index].name] as const)
+    .filter(([was, now]) => was !== now);
+  const rename = (line: string) =>
+    renames.reduce((text, [was, now]) => text.split(was).join(now), line);
+
+  const read = seats.map((seat) =>
+    seat.detector
+      ? {
+          ...seat,
+          detector: {
+            ...seat.detector,
+            reading: rename(seat.detector.reading),
+          },
+        }
+      : seat,
+  );
+  const rounds = base.rounds.map((round) => ({
+    ...round,
+    turns: round.turns.map((turn) =>
+      turn.detector
+        ? {
+            ...turn,
+            detector: {
+              ...turn.detector,
+              summary: rename(turn.detector.summary),
+            },
+          }
+        : turn,
+    ),
+  }));
+
+  return { ...base, seats: read, rounds };
 }
