@@ -7052,6 +7052,14 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
     height 160ms ease;
 }
 
+/* With nothing to light, the page is only shaded: a hole of no size would
+   turn the whole screen black. */
+.ioc-tour-veil {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
 .ioc-tour-card {
   position: fixed;
   width: 20rem;

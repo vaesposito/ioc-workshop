@@ -965,7 +965,7 @@ export function ConsoleTraceView() {
         </aside>
 
         {/* ── What was found, and a way into each reading ───────────────── */}
-        <section className="ioc-console-middle">
+        <section className="ioc-console-middle" data-tour="trace-middle">
           <div className="ioc-console-col ioc-no-scrollbar flex-1">
             <h2 className="ioc-fg text-[15px] font-light">Session quality</h2>
             <p className="ioc-console-note">

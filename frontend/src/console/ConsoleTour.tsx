@@ -6,6 +6,9 @@ import { LuX } from "react-icons/lu";
 export interface TourStep {
   /** The value of the data-tour attribute on the element being explained. */
   target: string;
+  /** What to light where the target is not on the page: a block it sits in
+      that is there whether or not the thing itself is. */
+  fallback?: string;
   /** The page the step is on, where it is not the one already open. */
   to?: string;
   title: string;
@@ -26,24 +29,28 @@ export const CONSOLE_TOUR: TourStep[] = [
   },
   {
     target: "alert-quality",
+    fallback: "alerts",
     to: "/console/apps/trip-planner",
     title: "Performance comes from observability",
     body: "Performance issues, and anything else you can read before an investigation, come from the observability scope watching the system run.",
   },
   {
     target: "trace-findings",
+    fallback: "trace-middle",
     to: LOOKED,
     title: "What an inspection brings back",
     body: "After an inspection, Detective security detection, CASA and the security active investigation CEs bring the security results and the enforcement propositions.",
   },
   {
     target: "act-quality",
+    fallback: "alerts",
     to: "/console/apps/trip-planner",
     title: "L9 protocols answer performance",
     body: "L9 protocols can be added to solve the performance issues the scope identified.",
   },
   {
     target: "trace-enforcement",
+    fallback: "trace-middle",
     to: LOOKED,
     title: "Enforcement answers security",
     body: "CASA and the security active investigation can enforce what they propose: denying authorizations and blocking agents.",
@@ -57,9 +64,21 @@ interface Box {
   height: number;
 }
 
-function boxOf(target: string): Box | null {
-  const node = document.querySelector<HTMLElement>(`[data-tour="${target}"]`);
-  if (!node) {
+/** The thing a step is about, or the block it sits in, whichever is here. */
+function nodeOf(step: TourStep): HTMLElement | null {
+  return (
+    document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`) ??
+    (step.fallback
+      ? document.querySelector<HTMLElement>(`[data-tour="${step.fallback}"]`)
+      : null)
+  );
+}
+
+function boxOf(step: TourStep): Box | null {
+  const node = nodeOf(step);
+  // A thing inside a collapsed section is in the page but has no size, which
+  // would light an empty sliver; it counts as not being here.
+  if (!node || node.getBoundingClientRect().height < 4) {
     return null;
   }
   const rect = node.getBoundingClientRect();
@@ -109,20 +128,19 @@ export function ConsoleTour({
     if (!step) {
       return;
     }
-    const measure = () => setBox(boxOf(step.target));
+    const measure = () => setBox(boxOf(step));
     measure();
-    // The page it is on may still be arriving, so the step keeps looking for
-    // a while rather than giving up on the first paint.
-    let tries = 0;
+    // The page the step is on may still be arriving, and what it is about may
+    // open later still, so the light keeps looking rather than giving up.
+    let found = false;
     const hunt = window.setInterval(() => {
-      const node = document.querySelector(`[data-tour="${step.target}"]`);
-      tries += 1;
-      if (node) {
+      const node = nodeOf(step);
+      if (node && !found) {
+        found = true;
         node.scrollIntoView({ behavior: "smooth", block: "center" });
-        measure();
       }
-      if (node || tries > 40) window.clearInterval(hunt);
-    }, 60);
+      measure();
+    }, 150);
     window.addEventListener("scroll", measure, true);
     window.addEventListener("resize", measure);
     return () => {
@@ -147,6 +165,8 @@ export function ConsoleTour({
   }
 
   const last = at === steps.length - 1;
+  // With nothing to light, the page is left alone and the card is read on its
+  // own, rather than everything going dark behind a hole of no size.
   // Below what it explains where there is room, above it where there is not.
   const below = box ? box.top + box.height + 240 < window.innerHeight : true;
   const top = box
@@ -161,20 +181,20 @@ export function ConsoleTour({
   return createPortal(
     <div className="ioc-tour">
       {/* One element both dims the page and cuts the light out of it. */}
-      <div
-        className="ioc-tour-light"
-        style={
-          box
-            ? {
-                top: box.top - 6,
-                left: box.left - 6,
-                width: box.width + 12,
-                height: box.height + 12,
-              }
-            : { top: "50%", left: "50%", width: 0, height: 0 }
-        }
-        onClick={onClose}
-      />
+      {box ? (
+        <div
+          className="ioc-tour-light"
+          style={{
+            top: box.top - 6,
+            left: box.left - 6,
+            width: box.width + 12,
+            height: box.height + 12,
+          }}
+          onClick={onClose}
+        />
+      ) : (
+        <div className="ioc-tour-veil" onClick={onClose} />
+      )}
 
       <aside
         className="ioc-tour-card"

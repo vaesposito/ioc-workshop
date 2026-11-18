@@ -39,58 +39,60 @@ export function ConsoleAlert({ items }: { items: Guidance[] }) {
   const open = items.filter((item) => !item.settled).length;
 
   return (
-    <DebateSection
-      label="Recommendations"
-      preview={open === 0 ? "all taken" : `${open} to take`}
-      defaultOpen
-    >
-      <ul className="ioc-console-guidance">
-        {items.map((item) => (
-          <li
-            key={item.id}
-            className={`ioc-console-banner${item.grave && !item.settled ? " is-grave" : ""}${item.settled ? " is-settled" : ""}`}
-          >
-            {item.settled ? (
-              <LuCheck size={13} aria-hidden className="shrink-0" />
-            ) : (
-              <LuTriangleAlert size={13} aria-hidden className="shrink-0" />
-            )}
-            <button
-              type="button"
-              onClick={item.onOpen}
-              disabled={!item.onOpen}
-              className="ioc-console-banner-body"
-              title={item.hint}
+    <div data-tour="alerts">
+      <DebateSection
+        label="Recommendations"
+        preview={open === 0 ? "all taken" : `${open} to take`}
+        defaultOpen
+      >
+        <ul className="ioc-console-guidance">
+          {items.map((item) => (
+            <li
+              key={item.id}
+              className={`ioc-console-banner${item.grave && !item.settled ? " is-grave" : ""}${item.settled ? " is-settled" : ""}`}
             >
-              <span className="ioc-console-banner-count">{item.count}</span>
-              <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 text-[12px] font-light">
-                {item.label}
-              </span>
-            </button>
-            <span className="ioc-faint text-[11.5px] font-light">
-              · {item.standing}
-            </span>
-            {item.settled ? null : item.action.to ? (
-              <Link
-                to={item.action.to}
-                className="ioc-console-act ml-auto shrink-0"
-              >
-                {item.action.icon}
-                {item.action.label}
-              </Link>
-            ) : (
+              {item.settled ? (
+                <LuCheck size={13} aria-hidden className="shrink-0" />
+              ) : (
+                <LuTriangleAlert size={13} aria-hidden className="shrink-0" />
+              )}
               <button
                 type="button"
-                onClick={item.action.onAct}
-                className="ioc-console-act ml-auto shrink-0"
+                onClick={item.onOpen}
+                disabled={!item.onOpen}
+                className="ioc-console-banner-body"
+                title={item.hint}
               >
-                {item.action.icon}
-                {item.action.label}
+                <span className="ioc-console-banner-count">{item.count}</span>
+                <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 text-[12px] font-light">
+                  {item.label}
+                </span>
               </button>
-            )}
-          </li>
-        ))}
-      </ul>
-    </DebateSection>
+              <span className="ioc-faint text-[11.5px] font-light">
+                · {item.standing}
+              </span>
+              {item.settled ? null : item.action.to ? (
+                <Link
+                  to={item.action.to}
+                  className="ioc-console-act ml-auto shrink-0"
+                >
+                  {item.action.icon}
+                  {item.action.label}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={item.action.onAct}
+                  className="ioc-console-act ml-auto shrink-0"
+                >
+                  {item.action.icon}
+                  {item.action.label}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </DebateSection>
+    </div>
   );
 }
