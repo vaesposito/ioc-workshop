@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  LuCheck,
   LuChevronRight,
   LuScanSearch,
   LuSlidersHorizontal,
@@ -21,7 +22,12 @@ import {
   SecuritySection,
   TopicsSection,
 } from "./AppSections";
-import { detailFor, usualCost, type AppDetail } from "./appDetailData";
+import {
+  COST_LOOSE,
+  detailFor,
+  usualCost,
+  type AppDetail,
+} from "./appDetailData";
 import { ConsoleTopology } from "./ConsoleTopology";
 import { ConsoleOverview } from "./ConsoleOverview";
 import { isPicked, touches, type ConsolePick } from "./pick";
@@ -166,14 +172,43 @@ export function ConsoleAppDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const detail = id ? detailFor(id) : null;
-  // An investigation started from here runs against the worst session that
-  // nobody has looked at, and hands the reader over to it once it is done.
-  const target =
-    [...(detail?.sessions ?? [])]
-      .filter((run) => !run.investigated)
-      .sort((left, right) => right.failures - left.failures)[0] ?? null;
+  // An investigation runs against whichever sessions are picked for it. The
+  // ones that are off in some way are put forward, since they are the ones
+  // worth the time, but the choice is the reader's.
+  const usual = usualCost(detail?.sessions ?? []);
+  const open = (detail?.sessions ?? [])
+    .filter((run) => !run.investigated)
+    .map((run) => {
+      const over = usual > 0 ? run.costScore / usual - 1 : 0;
+      const why = [
+        run.status === "error" ? "ended in error" : null,
+        run.failures >= 2 ? `${run.failures} cognitive failures` : null,
+        over >= COST_LOOSE - 1
+          ? `cost ${Math.round(over * 100)}% over the usual`
+          : null,
+      ].filter((part): part is string => part !== null);
+      return {
+        run,
+        why,
+        weight:
+          (run.status === "error" ? 3 : 0) +
+          run.failures +
+          Math.max(over, 0) * 5,
+      };
+    })
+    .sort((left, right) => right.weight - left.weight);
+  // What the console would pick: everything with something against it, and
+  // failing that the worst of what is left.
+  const urged = open.filter((entry) => entry.why.length > 0).slice(0, 3);
+  const advised = (urged.length > 0 ? urged : open.slice(0, 1)).map(
+    (entry) => entry.run.id,
+  );
+
+  const [choosing, setChoosing] = useState(false);
+  const [chosen, setChosen] = useState<string[]>([]);
   const [probe, setProbe] = useState<"none" | "running">("none");
   const [step, setStep] = useState(0);
+  const target = chosen[0] ?? null;
 
   useEffect(() => {
     if (probe !== "running" || !detail || !target) return;
@@ -183,7 +218,7 @@ export function ConsoleAppDetail() {
         window.clearInterval(timer);
         setProbe("none");
         navigate(
-          `/console/apps/${detail.app.id}/traces/${target.id}?investigated=1`,
+          `/console/apps/${detail.app.id}/traces/${target}?investigated=1`,
         );
         return current;
       });
@@ -284,7 +319,9 @@ export function ConsoleAppDetail() {
           settled: false,
           standing:
             probe === "running"
-              ? `Investigating ${target?.id ?? "the worst session"}`
+              ? `Investigating ${chosen.length} ${
+                  chosen.length === 1 ? "session" : "sessions"
+                }`
               : detail.summary.maliciousTraces > 0
                 ? held > 0
                   ? `${detail.summary.maliciousTraces} malicious, ${held} ${held === 1 ? "control" : "controls"} in place`
@@ -298,9 +335,9 @@ export function ConsoleAppDetail() {
               probe === "running" ? "Investigating…" : "Start an investigation",
             icon: <LuScanSearch size={14} aria-hidden />,
             onAct: () => {
-              if (probe === "running" || !target) return;
-              setStep(0);
-              setProbe("running");
+              if (probe === "running" || open.length === 0) return;
+              setChosen(advised);
+              setChoosing(true);
             },
           },
         },
@@ -460,7 +497,11 @@ export function ConsoleAppDetail() {
                 <p className="ioc-kicker">Investigation</p>
                 <ConsoleProbe
                   step={step}
-                  said={`Running against ${target.id}, the worst session nobody has looked at.`}
+                  said={
+                    chosen.length === 1
+                      ? `Running against ${target}.`
+                      : `Running against ${chosen.length} sessions, starting with ${target}.`
+                  }
                 />
               </div>
             ) : null}
@@ -538,6 +579,81 @@ export function ConsoleAppDetail() {
           </ul>
         </aside>
       </div>
+
+      {/* Which sessions to spend an investigation on, put forward but not
+          decided: several can go at once. */}
+      {choosing ? (
+        <ConsoleDrawer
+          title="Start an investigation"
+          blurb="Pick the sessions to look into. The ones with something against them are already ticked."
+          onClose={() => setChoosing(false)}
+        >
+          <ul className="ioc-console-picks">
+            {open.map((entry) => {
+              const lit = chosen.includes(entry.run.id);
+              return (
+                <li key={entry.run.id}>
+                  <button
+                    type="button"
+                    aria-pressed={lit}
+                    onClick={() =>
+                      setChosen((current) =>
+                        current.includes(entry.run.id)
+                          ? current.filter((one) => one !== entry.run.id)
+                          : [...current, entry.run.id],
+                      )
+                    }
+                    className={`ioc-console-pick${lit ? " is-on" : ""}`}
+                  >
+                    <span className="ioc-console-pick-mark" aria-hidden>
+                      {lit ? <LuCheck size={11} /> : null}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="ioc-fg text-[12.5px]">
+                          {entry.run.id}
+                        </span>
+                        {advised.includes(entry.run.id) ? (
+                          <span className="ioc-console-chip is-soft">
+                            recommended
+                          </span>
+                        ) : null}
+                        <span className="ioc-faint text-[11px] font-light">
+                          {entry.run.topic}
+                        </span>
+                      </span>
+                      <span className="ioc-faint mt-0.5 block text-left text-[11px] leading-[1.45] font-light">
+                        {entry.why.length > 0
+                          ? entry.why.join(" · ")
+                          : "Nothing against it; investigate it to be sure."}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="ioc-hairline mt-4 flex items-center gap-2 border-t pt-4">
+            <p className="ioc-faint text-[11px] font-light">
+              {chosen.length} of {open.length} picked.
+            </p>
+            <button
+              type="button"
+              disabled={chosen.length === 0}
+              onClick={() => {
+                setChoosing(false);
+                setStep(0);
+                setProbe("running");
+              }}
+              className="ioc-console-act ml-auto"
+            >
+              <LuScanSearch size={13} aria-hidden />
+              Investigate {chosen.length}{" "}
+              {chosen.length === 1 ? "session" : "sessions"}
+            </button>
+          </div>
+        </ConsoleDrawer>
+      ) : null}
 
       {reading ? (
         <ConsoleDrawer
