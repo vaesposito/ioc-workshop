@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { LuArrowDown, LuArrowUp, LuPlus, LuSearch } from "react-icons/lu";
+import {
+  LuArrowDown,
+  LuArrowUp,
+  LuCheck,
+  LuPencil,
+  LuPlus,
+  LuSearch,
+} from "react-icons/lu";
 
 import { Link } from "react-router-dom";
 
@@ -8,7 +15,12 @@ import { DebateSection } from "../components/DebateSection";
 import { ConsoleDial } from "./ConsoleDial";
 import { ConsoleTraceRow } from "./ConsoleTraceRow";
 import { compact } from "./consoleData";
-import type { AppDetail, Protocol, ProtocolBlock } from "./appDetailData";
+import {
+  PROTOCOL_OFFERS,
+  type AppDetail,
+  type Protocol,
+  type ProtocolBlock,
+} from "./appDetailData";
 import { isPicked, type Pickable } from "./pick";
 
 /** Red through amber to green, by how well a reading is doing. */
@@ -1325,13 +1337,55 @@ function ProtocolCard({
   );
 }
 
-export function ProtocolsSection({ detail, pick, onPick }: Props) {
+export function ProtocolsSection({
+  detail,
+  pick,
+  onPick,
+  picking = false,
+  onAdded,
+}: Props & {
+  /** Opened straight into the list to pick from, from a banner. */
+  picking?: boolean;
+  /** Called the first time a protocol is put on. */
+  onAdded?: () => void;
+}) {
   // One protocol is open at a time, and what is open is what the traces
   // beside it are held to.
   const [open, setOpen] = useState<string | null>(
     detail.protocols[0]?.code ?? null,
   );
-  const terms = detail.protocols.reduce(
+  // Which protocols are on. The list is read as it stands; picking from it
+  // is a thing you go into, so the reading is not a form.
+  const [on, setOn] = useState<string[]>(
+    detail.protocols.map((entry) => entry.code),
+  );
+  const [editing, setEditing] = useState(picking);
+
+  const offered = PROTOCOL_OFFERS.filter(
+    (offer) => !detail.protocols.some((entry) => entry.code === offer.code),
+  );
+  const rows = [
+    ...detail.protocols.map((entry) => ({
+      code: entry.code,
+      name: entry.name,
+      what: entry.what,
+    })),
+    ...offered,
+  ];
+  const left = rows.filter((row) => !on.includes(row.code));
+  const live = detail.protocols.filter((entry) => on.includes(entry.code));
+  const added = offered.filter((offer) => on.includes(offer.code));
+
+  const toggle = (code: string) =>
+    setOn((current) => {
+      if (current.includes(code)) {
+        return current.filter((entry) => entry !== code);
+      }
+      onAdded?.();
+      return [...current, code];
+    });
+
+  const terms = live.reduce(
     (count, protocol) =>
       count +
       protocol.blocks.reduce(
@@ -1340,32 +1394,83 @@ export function ProtocolsSection({ detail, pick, onPick }: Props) {
       ),
     0,
   );
-  const busiest = detail.protocols.reduce((top, protocol) =>
-    protocol.share > top.share ? protocol : top,
+  const busiest = live.reduce<Protocol | null>(
+    (top, protocol) => (!top || protocol.share > top.share ? protocol : top),
+    null,
   );
 
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="ioc-faint text-[11.5px] font-light">
-          {detail.protocols.length} protocols are running on this application.
+          {on.length === 0
+            ? "No protocol is running on this application."
+            : `${on.length} ${on.length === 1 ? "protocol is" : "protocols are"} running on this application.`}
         </p>
-        <button
-          type="button"
-          title="Not wired yet."
-          className="ioc-console-act mt-2"
-        >
-          <LuPlus size={13} />
-          Add cognition protocol
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setEditing((shown) => !shown)}
+            className="ioc-console-act is-quiet"
+          >
+            {editing ? <LuCheck size={13} /> : <LuPencil size={13} />}
+            {editing ? "Done" : "Edit"}
+          </button>
+          {/* With nothing left to put on, the only move is taking one off. */}
+          <button
+            type="button"
+            disabled={left.length === 0}
+            onClick={() => setEditing(true)}
+            title={
+              left.length === 0
+                ? "Every protocol is already running. Edit the list to take one off."
+                : `${left.length} more can be put on this application.`
+            }
+            className="ioc-console-act"
+          >
+            <LuPlus size={13} />
+            Add cognition protocol
+          </button>
+        </div>
       </div>
+
+      {editing ? (
+        <ul className="ioc-console-picks">
+          {rows.map((row) => {
+            const lit = on.includes(row.code);
+            return (
+              <li key={row.code}>
+                <button
+                  type="button"
+                  aria-pressed={lit}
+                  onClick={() => toggle(row.code)}
+                  className={`ioc-console-pick${lit ? " is-on" : ""}`}
+                  title={lit ? `Take ${row.code} off` : `Put ${row.code} on`}
+                >
+                  <span className="ioc-console-pick-mark" aria-hidden>
+                    {lit ? <LuCheck size={11} /> : null}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="ioc-fg block text-left text-[12.5px]">
+                      {row.code} · {row.name}
+                    </span>
+                    <span className="ioc-faint block text-left text-[11px] leading-[1.45] font-light">
+                      {row.what}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
 
       <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-3">
         {[
           {
             label: "Active protocols",
-            value: `${detail.protocols.length}`,
-            note: detail.protocols.map((entry) => entry.code).join(" · "),
+            value: `${on.length}`,
+            note: on.length > 0 ? on.join(" · ") : "Nothing running",
           },
           {
             label: "Coordination terms",
@@ -1374,8 +1479,8 @@ export function ProtocolsSection({ detail, pick, onPick }: Props) {
           },
           {
             label: "Largest token share",
-            value: percent(busiest.share),
-            note: busiest.code,
+            value: busiest ? percent(busiest.share) : "—",
+            note: busiest ? busiest.code : "Nothing running",
           },
         ].map((tile) => (
           <div key={tile.label} className="ioc-console-tile">
@@ -1388,8 +1493,23 @@ export function ProtocolsSection({ detail, pick, onPick }: Props) {
         ))}
       </div>
 
+      {added.length === 0 ? null : (
+        <ul className="mt-4 flex flex-col gap-1.5">
+          {added.map((offer) => (
+            <li key={offer.code} className="ioc-console-move is-settled">
+              <p className="ioc-fg text-[12.5px]">
+                {offer.code} · {offer.name}
+              </p>
+              <p className="ioc-faint mt-1 text-[11px] leading-[1.45] font-light">
+                Put on just now. Nothing has run under it yet.
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="ioc-debate-stack mt-5">
-        {detail.protocols.map((protocol) => (
+        {live.map((protocol) => (
           <ProtocolCard
             key={protocol.code}
             protocol={protocol}

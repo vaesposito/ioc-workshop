@@ -123,11 +123,16 @@ function Body({
   detail,
   pick,
   onPick,
+  picking,
+  onAdded,
 }: {
   view: ViewId;
   detail: AppDetail;
   pick: ConsolePick | null;
   onPick: (pick: ConsolePick) => void;
+  /** Opens the protocols reading on the list to pick from. */
+  picking: boolean;
+  onAdded: () => void;
 }) {
   const shared = { detail, pick, onPick };
   switch (view) {
@@ -144,7 +149,9 @@ function Body({
     case "metrics":
       return <MetricsSection {...shared} />;
     case "protocols":
-      return <ProtocolsSection {...shared} />;
+      return (
+        <ProtocolsSection {...shared} picking={picking} onAdded={onAdded} />
+      );
     default:
       return null;
   }
@@ -189,6 +196,9 @@ export function ConsoleAppDetail() {
   // one before saying anything about it.
   const [params] = useSearchParams();
   const asked = params.get("view");
+  // Coming from the banner, the protocols reading opens on the list to pick
+  // from rather than on what is already running.
+  const [picking, setPicking] = useState(params.get("picking") === "1");
   const [view, setView] = useState<ViewId | null>(
     VIEWS.some((entry) => entry.id === asked) ? (asked as ViewId) : null,
   );
@@ -248,7 +258,10 @@ export function ConsoleAppDetail() {
               ? "Tighten the L9 protocol"
               : "Configure L9 protocol",
             icon: <LuSlidersHorizontal size={14} aria-hidden />,
-            onAct: () => setL9(true),
+            onAct: () => {
+              setPicking(true);
+              setView("protocols");
+            },
           },
         },
         {
@@ -534,7 +547,14 @@ export function ConsoleAppDetail() {
           onPick={(next) => setView(next as ViewId)}
           onClose={() => setView(null)}
         >
-          <Body view={reading.id} detail={detail} pick={pick} onPick={choose} />
+          <Body
+            view={reading.id}
+            detail={detail}
+            pick={pick}
+            onPick={choose}
+            picking={picking}
+            onAdded={() => setL9(true)}
+          />
         </ConsoleDrawer>
       ) : null}
     </ConsoleShell>

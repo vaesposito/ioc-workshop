@@ -8540,6 +8540,61 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   background: color-mix(in srgb, var(--ioc-kicker) 16%, transparent);
 }
 
+.ioc-console-act:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* The list a protocol is picked from: on or off, one row each. */
+.ioc-console-picks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+}
+
+.ioc-console-pick {
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: flex-start;
+  gap: 0.55rem;
+  border: 1px solid var(--ioc-glass-border);
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.ioc-console-pick:hover {
+  border-color: color-mix(in srgb, var(--ioc-kicker) 50%, transparent);
+}
+
+.ioc-console-pick.is-on {
+  border-color: color-mix(in srgb, var(--ioc-kicker) 55%, transparent);
+  background: color-mix(in srgb, var(--ioc-kicker) 8%, transparent);
+}
+
+/* The box that says whether it is on, lit when it is. */
+.ioc-console-pick-mark {
+  display: inline-flex;
+  height: 0.95rem;
+  width: 0.95rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.1rem;
+  border: 1px solid color-mix(in srgb, var(--ioc-kicker) 45%, transparent);
+  border-radius: 0.25rem;
+  color: var(--ioc-kicker);
+}
+
+.ioc-console-pick.is-on .ioc-console-pick-mark {
+  border-color: var(--ioc-kicker);
+  background: color-mix(in srgb, var(--ioc-kicker) 18%, transparent);
+}
+
 /* The other way a recommendation can go: offered, but not urged. */
 .ioc-console-act.is-quiet {
   border-color: var(--ioc-glass-border);

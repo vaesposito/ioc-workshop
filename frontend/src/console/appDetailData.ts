@@ -648,6 +648,32 @@ const METRICS: MetricGroup[] = [
   },
 ];
 
+/** A protocol that is not on this application yet, and what it would do. */
+export interface ProtocolOffer {
+  code: string;
+  name: string;
+  what: string;
+}
+
+/** The L9 protocols the console can put on an application. */
+export const PROTOCOL_OFFERS: ProtocolOffer[] = [
+  {
+    code: "CONSENT",
+    name: "Agreement before acting",
+    what: "Holds an agent back from acting on a shared term until the others have answered it.",
+  },
+  {
+    code: "RECALL",
+    name: "Carried context, checked",
+    what: "Makes each agent restate what it is carrying, so a fault is caught where it is picked up.",
+  },
+  {
+    code: "QUORUM",
+    name: "Agreement before answering",
+    what: "Keeps an answer from going out until enough of the agents hold the same one.",
+  },
+];
+
 const PROTOCOLS: Protocol[] = [
   {
     code: "ACCORD",

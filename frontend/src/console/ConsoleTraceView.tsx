@@ -352,7 +352,6 @@ export function ConsoleTraceView() {
   const [struck, setStruck] = useState(false);
   const [opened, setOpened] = useState<Set<string>>(new Set());
   const [folded, setFolded] = useState<Set<string>>(new Set());
-  const [l9, setL9] = useState(false);
   const [seat, setSeat] = useState<string | null>(null);
   const [taken, setTaken] = useState<Record<string, Standing>>({});
   const settle = (id: string, standing: Standing) =>
@@ -590,7 +589,7 @@ export function ConsoleTraceView() {
   const broke = session.timeline.filter(
     (span) => span.status === "error",
   ).length;
-  const protocol = l9 || detail.app.applied.protocols > 0;
+  const protocol = detail.app.applied.protocols > 0;
   const alerts: Guidance[] = [
     {
       id: "quality",
@@ -609,7 +608,7 @@ export function ConsoleTraceView() {
       action: {
         label: protocol ? "Tighten the L9 protocol" : "Configure L9 protocol",
         icon: <LuSlidersHorizontal size={14} aria-hidden />,
-        onAct: () => setL9(true),
+        to: `/console/apps/${detail.app.id}?view=protocols&picking=1`,
       },
     },
     // Nothing is a security issue until an investigation says so. What can be
