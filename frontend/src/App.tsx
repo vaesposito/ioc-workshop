@@ -9,6 +9,7 @@ import { ApplicationDetail } from "./pages/ApplicationDetail";
 import { Applications } from "./pages/Applications";
 import { AppSettings } from "./pages/AppSettings";
 import { ConsoleApps } from "./console/ConsoleApps";
+import { ConsoleJourneyPage } from "./console/ConsoleJourneyPage";
 import { ConsoleTraceView } from "./console/ConsoleTraceView";
 import { ConsoleAppDetail } from "./console/ConsoleAppDetail";
 import { DetectiveResult } from "./pages/DetectiveResult";
@@ -100,6 +101,10 @@ export function App() {
                 <Route path="/app-settings" element={<AppSettings />} />
                 {/* The new console, on its own shell beside the demo's pages. */}
                 <Route path="/console" element={<ConsoleApps />} />
+                <Route
+                  path="/console/journey"
+                  element={<ConsoleJourneyPage />}
+                />
                 <Route
                   path="/console/apps/:id"
                   element={<ConsoleAppDetail />}

@@ -1,5 +1,6 @@
 import {
   LuLayoutGrid,
+  LuWaypoints,
   LuRotateCcw,
   LuRoute,
   LuSearch,
@@ -144,6 +145,16 @@ export function ConsoleShell({
             }
           >
             <LuLayoutGrid size={17} />
+          </NavLink>
+          <NavLink
+            to="/console/journey"
+            title="Journey"
+            aria-label="Journey"
+            className={({ isActive }) =>
+              `ioc-console-rail-link${isActive ? " is-active" : ""}`
+            }
+          >
+            <LuWaypoints size={17} />
           </NavLink>
         </nav>
 
