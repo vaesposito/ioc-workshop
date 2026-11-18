@@ -8545,6 +8545,28 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   opacity: 0.45;
 }
 
+/* Something off in a way that is worth a look, short of a finding. */
+.ioc-console-sign {
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: flex-start;
+  gap: 0.55rem;
+  border: 1px solid var(--ioc-glass-border);
+  border-left: 2px solid color-mix(in srgb, #f6a356 60%, transparent);
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  color: #f6a356;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.ioc-console-sign:hover {
+  border-color: color-mix(in srgb, #f6a356 55%, transparent);
+  background: color-mix(in srgb, #f6a356 8%, transparent);
+}
+
 /* The list a protocol is picked from: on or off, one row each. */
 .ioc-console-picks {
   display: flex;

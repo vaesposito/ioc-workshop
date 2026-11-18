@@ -6,6 +6,7 @@ import {
   LuPencil,
   LuPlus,
   LuSearch,
+  LuTriangleAlert,
 } from "react-icons/lu";
 
 import { Link } from "react-router-dom";
@@ -85,6 +86,40 @@ export function SecuritySection({ detail, pick, onPick }: Props) {
     .filter((row) => row.calls > 0)
     .sort((left, right) => right.calls - left.calls);
 
+  // What is off in a way worth a look: a session that broke down, and a
+  // session that cost well over what the rest of them cost.
+  const spend = detail.sessions
+    .map((run) => run.costScore)
+    .sort((left, right) => left - right);
+  const usual = spend[Math.floor(spend.length / 2)] ?? 0;
+  const signs = detail.sessions
+    .flatMap((run) => {
+      const over = usual > 0 ? run.costScore / usual - 1 : 0;
+      return [
+        run.failures >= 2
+          ? {
+              id: `${run.id}-failures`,
+              run: run.id,
+              weight: run.failures,
+              said: `${run.failures} cognitive failures in one session`,
+              why: "Reasoning that broke down this often is either a bad run or a pushed one.",
+            }
+          : null,
+        over >= 0.2
+          ? {
+              id: `${run.id}-cost`,
+              run: run.id,
+              weight: over * 10,
+              said: `Cost ${percent(over)} over the usual session`,
+              why: `${run.costScore} against the ${usual} this application usually spends.`,
+            }
+          : null,
+      ];
+    })
+    .filter((sign): sign is NonNullable<typeof sign> => sign !== null)
+    .sort((left, right) => right.weight - left.weight)
+    .slice(0, 6);
+
   return (
     <div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -105,6 +140,42 @@ export function SecuritySection({ detail, pick, onPick }: Props) {
         reached for was outside what the application declares, and was refused
         before it went through.
       </p>
+
+      {/* Nothing here is a finding. They are the things that are off in a
+          way an attack would make them off, which is reason enough to look. */}
+      <p className="ioc-kicker mt-7">Worth exploring</p>
+      <p className="ioc-faint text-[11px] font-light">
+        Sessions that broke down or cost more than they should. None of this is
+        a security issue yet; an investigation is what would say.
+      </p>
+      {signs.length === 0 ? (
+        <p className="ioc-faint mt-2 text-[11.5px] font-light">
+          Nothing is out of the ordinary on this application.
+        </p>
+      ) : (
+        <ul className="mt-2 flex flex-col gap-1.5">
+          {signs.map((sign) => (
+            <li key={sign.id}>
+              <Link
+                to={`/console/apps/${detail.app.id}/traces/${sign.run}`}
+                className="ioc-console-sign"
+                title={`Open ${sign.run}`}
+              >
+                <LuTriangleAlert size={13} className="shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1">
+                  <span className="ioc-fg block text-[12px]">{sign.said}</span>
+                  <span className="ioc-faint block text-[11px] leading-[1.45] font-light">
+                    {sign.why}
+                  </span>
+                </span>
+                <span className="ioc-faint shrink-0 text-[11px] font-light">
+                  {sign.run}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <p className="ioc-kicker mt-7">Where the refusals fell</p>
       <ul className="mt-2 flex flex-col gap-1.5">
