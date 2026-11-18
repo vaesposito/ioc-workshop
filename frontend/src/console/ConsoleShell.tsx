@@ -1,6 +1,4 @@
 import {
-  LuBell,
-  LuCircleHelp,
   LuLayoutGrid,
   LuRotateCcw,
   LuRoute,
@@ -127,16 +125,6 @@ export function ConsoleShell({
             }}
           >
             <LuRotateCcw size={15} />
-          </button>
-          <button type="button" className="ioc-icon-btn" aria-label="Help">
-            <LuCircleHelp size={15} />
-          </button>
-          <button
-            type="button"
-            className="ioc-icon-btn"
-            aria-label="Notifications"
-          >
-            <LuBell size={15} />
           </button>
           <button type="button" className="ioc-icon-btn" aria-label="Account">
             <LuUser size={15} />
