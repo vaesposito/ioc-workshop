@@ -652,7 +652,7 @@ export function ConsoleAppDetail() {
               </button>
             </p>
           ) : null}
-          <ul className="mt-2 flex flex-col gap-1.5">
+          <ul className="ioc-console-sessions mt-2 flex flex-col">
             {detail.sessions.map((entry) => (
               <li key={entry.id}>
                 <ConsoleTraceRow

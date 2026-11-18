@@ -191,7 +191,7 @@ export function SecuritySection({ detail, pick, onPick }: Props) {
         The sessions that ended badly, and the ones an investigation has been
         through.
       </p>
-      <ul className="mt-2 flex flex-col gap-1.5">
+      <ul className="ioc-console-sessions mt-2 flex flex-col">
         {detail.sessions
           .filter((run) => run.status !== "ok" || run.investigated)
           .map((run) => (

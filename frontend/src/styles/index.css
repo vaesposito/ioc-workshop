@@ -7500,30 +7500,24 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
 }
 
 /* One session in the right-hand column. */
+/* A run in a list of runs: a row, divided from the next by a rule, rather
+   than a card of its own. */
 .ioc-console-session {
   display: block;
   width: 100%;
-  border: 1px solid var(--ioc-glass-border);
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--ioc-glass-border);
+  padding: 0.5rem 0.2rem;
   background: transparent;
   text-align: left;
   cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    background-color 140ms ease;
+  transition: background-color 140ms ease;
 }
 
 .ioc-console-session:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--ioc-kicker) 40%,
-    var(--ioc-glass-border)
-  );
+  background: color-mix(in srgb, var(--ioc-kicker) 7%, transparent);
 }
 
 .ioc-console-session.is-active {
-  border-color: color-mix(in srgb, var(--ioc-kicker) 65%, transparent);
   background: color-mix(in srgb, var(--ioc-kicker) 10%, transparent);
 }
 
@@ -7958,8 +7952,13 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
 
 /* A run that touched whatever is picked, and one that did not. */
 .ioc-console-session.is-lit {
-  border-color: color-mix(in srgb, var(--ioc-kicker) 65%, transparent);
   background: color-mix(in srgb, var(--ioc-kicker) 11%, transparent);
+}
+
+/* The last row of a list closes it, so the rule under it would read as a
+   line under nothing. */
+.ioc-console-sessions > li:last-child .ioc-console-session {
+  border-bottom: 0;
 }
 
 .ioc-console-session.is-far {
