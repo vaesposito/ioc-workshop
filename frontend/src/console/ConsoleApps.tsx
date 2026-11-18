@@ -103,7 +103,7 @@ export function ConsoleApps() {
             className="ioc-console-act"
           >
             <LuPlus size={13} />
-            Add MAS
+            Create MAS
           </button>
         </div>
       </div>

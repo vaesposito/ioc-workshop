@@ -24,7 +24,7 @@ export const CONSOLE_TOUR: TourStep[] = [
   {
     target: "apps-add",
     to: "/console",
-    title: "Add a multi-agent system",
+    title: "Create a multi-agent system",
     body: "Pointing the console at a MAS triggers a cognition fabric flow, which is what puts everything the rest of this tour reads in place.",
   },
   {
