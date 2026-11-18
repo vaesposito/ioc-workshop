@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LuX } from "react-icons/lu";
@@ -42,8 +42,8 @@ export const CONSOLE_TOUR: TourStep[] = [
     body: "After an inspection, Detective security detection, CASA and the security active investigation CEs bring the security results and the enforcement propositions.",
   },
   {
-    target: "app-reading",
-    fallback: "alerts",
+    target: "protocol-picks",
+    fallback: "app-reading",
     to: "/console/apps/trip-planner?view=protocols",
     title: "L9 protocols answer performance",
     body: "L9 protocols can be added to solve the performance issues the scope identified. They are read and added here.",
@@ -111,6 +111,9 @@ export function ConsoleTour({
   const navigate = useNavigate();
   const location = useLocation();
   const [box, setBox] = useState<Box | null>(null);
+  // The card is put where it fits, which takes knowing how tall it is.
+  const card = useRef<HTMLElement | null>(null);
+  const [tall, setTall] = useState(200);
   const step = steps[at] ?? null;
   const setAt = onAt;
 
@@ -159,6 +162,11 @@ export function ConsoleTour({
     };
   }, [step]);
 
+  useLayoutEffect(() => {
+    const high = card.current?.getBoundingClientRect().height;
+    if (high && Math.abs(high - tall) > 1) setTall(high);
+  });
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -176,15 +184,21 @@ export function ConsoleTour({
   const last = at === steps.length - 1;
   // With nothing to light, the page is left alone and the card is read on its
   // own, rather than everything going dark behind a hole of no size.
-  // Below what it explains where there is room, above it where there is not.
-  const below = box ? box.top + box.height + 240 < window.innerHeight : true;
-  const top = box
-    ? below
-      ? box.top + box.height + 12
-      : Math.max(box.top - 12, 12)
-    : window.innerHeight / 2;
+  // Below what it explains where there is room, above it where there is not,
+  // and over it where the thing is taller than the screen. Whichever it is,
+  // the card stays on the screen.
+  const room = window.innerHeight;
+  const edge = 16;
+  const gap = 12;
+  const top = !box
+    ? Math.max((room - tall) / 2, edge)
+    : box.top + box.height + gap + tall + edge <= room
+      ? box.top + box.height + gap
+      : box.top - gap - tall >= edge
+        ? box.top - gap - tall
+        : Math.max(room - tall - edge, edge);
   const left = box
-    ? Math.min(Math.max(box.left, 16), window.innerWidth - 336)
+    ? Math.min(Math.max(box.left, edge), window.innerWidth - 336)
     : window.innerWidth / 2 - 160;
 
   return createPortal(
@@ -206,12 +220,9 @@ export function ConsoleTour({
       )}
 
       <aside
+        ref={card}
         className="ioc-tour-card"
-        style={{
-          top,
-          left,
-          transform: below ? undefined : "translateY(-100%)",
-        }}
+        style={{ top, left }}
         role="dialog"
         aria-label={step.title}
       >

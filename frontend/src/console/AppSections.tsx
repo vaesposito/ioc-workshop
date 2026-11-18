@@ -1480,7 +1480,10 @@ export function ProtocolsSection({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div
+        data-tour="protocol-picks"
+        className="flex flex-wrap items-center justify-between gap-3"
+      >
         <p className="ioc-faint text-[11.5px] font-light">
           {on.length === 0
             ? "No protocol is running on this application."
