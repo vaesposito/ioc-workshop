@@ -108,12 +108,12 @@ export function ConsoleShell({
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
-            className="ioc-icon-btn"
-            aria-label="Take a tour"
-            title="Take a tour of the console"
+            className="ioc-console-act mr-1"
+            title="Walk through the console in five steps"
             onClick={() => setStep(0)}
           >
-            <LuRoute size={15} />
+            <LuRoute size={13} aria-hidden />
+            Take a tour
           </button>
           <button
             type="button"
