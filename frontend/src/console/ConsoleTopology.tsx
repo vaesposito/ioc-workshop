@@ -145,18 +145,26 @@ export function ConsoleTopology({
         ))}
       </div>
 
+      {/* The ring says three things at once, so the key says which is
+          which rather than listing its colours. */}
+      <p className="ioc-console-ring-said">
+        Every agent and tool in the application, with an arrow for each way
+        messages travel. An agent's colour is how well it is doing over the
+        period; an arrow runs from whoever sent the message to whoever received
+        it, and is drawn heavier the more of them passed that way.
+      </p>
       <ul className="ioc-console-ring-key">
         <li>
           <span className="ioc-console-key-dot is-good" aria-hidden />
-          Agent holding up
+          Agent, running well
         </li>
         <li>
           <span className="ioc-console-key-dot is-watch" aria-hidden />
-          Needs a look
+          Agent, worth a look
         </li>
         <li>
           <span className="ioc-console-key-dot is-bad" aria-hidden />
-          In trouble
+          Agent, in trouble
         </li>
         <li>
           <span className="ioc-console-key-dot is-tool" aria-hidden />
@@ -164,7 +172,11 @@ export function ConsoleTopology({
         </li>
         <li>
           <span className="ioc-console-key-line" aria-hidden />
-          Arrow points the way messages go, heavier where more pass
+          Agent to agent
+        </li>
+        <li>
+          <span className="ioc-console-key-line is-tool" aria-hidden />
+          Agent reaching for a tool
         </li>
       </ul>
     </div>
