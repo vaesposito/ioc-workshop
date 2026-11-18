@@ -567,7 +567,9 @@ export function ConsoleTraceView() {
   const broke = session.timeline.filter(
     (span) => span.status === "error",
   ).length;
-  const protocol = detail.app.applied.protocols > 0;
+  // The protocols this session ran under, which is what the banner can
+  // claim is configured.
+  const protocol = session.protocols.length > 0;
   const alerts: Guidance[] = [
     {
       id: "quality",
@@ -577,14 +579,16 @@ export function ConsoleTraceView() {
       grave: session.failures > 0,
       settled: session.failures === 0,
       standing: protocol
-        ? `L9 protocol configured, ${session.failures} still standing`
+        ? `${session.protocols.join(" · ")} configured, ${session.failures} still standing`
         : "No protocol configured",
       onOpen: () =>
         document
           .getElementById("trace-failures")
           ?.scrollIntoView({ behavior: "smooth", block: "start" }),
       action: {
-        label: protocol ? "Tighten the L9 protocol" : "Configure L9 protocol",
+        label: protocol
+          ? "Tighten the L9 protocols"
+          : "Configure an L9 protocol",
         icon: <LuSlidersHorizontal size={14} aria-hidden />,
         to: `/console/apps/${detail.app.id}?view=protocols&picking=1`,
       },

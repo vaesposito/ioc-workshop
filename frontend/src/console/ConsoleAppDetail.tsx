@@ -137,7 +137,6 @@ function Body({
   pick,
   onPick,
   picking,
-  onAdded,
 }: {
   view: ViewId;
   detail: AppDetail;
@@ -145,7 +144,6 @@ function Body({
   onPick: (pick: ConsolePick) => void;
   /** Opens the protocols reading on the list to pick from. */
   picking: boolean;
-  onAdded: () => void;
 }) {
   const shared = { detail, pick, onPick };
   switch (view) {
@@ -162,9 +160,7 @@ function Body({
     case "metrics":
       return <MetricsSection {...shared} />;
     case "protocols":
-      return (
-        <ProtocolsSection {...shared} picking={picking} onAdded={onAdded} />
-      );
+      return <ProtocolsSection {...shared} picking={picking} />;
     default:
       return null;
   }
@@ -269,7 +265,6 @@ export function ConsoleAppDetail() {
   // One thing at a time is held across the three columns: picking it again
   // lets it go.
   const [pick, setPick] = useState<ConsolePick | null>(null);
-  const [l9, setL9] = useState(false);
   const choose = (next: ConsolePick) =>
     setPick((current) =>
       current && current.kind === next.kind && current.id === next.id
@@ -300,7 +295,11 @@ export function ConsoleAppDetail() {
   const issues = detail
     ? detail.summary.cognitiveFailures + detail.summary.fatalErrors
     : 0;
-  const protocol = l9 || (detail?.app.applied.protocols ?? 0) > 0;
+  // Which protocols are actually on, as the protocols reading has them:
+  // what the application came with, less anything taken off here.
+  const live =
+    standing.protocols[detail?.app.id ?? ""] ??
+    (detail?.protocols ?? []).map((entry) => entry.code);
   // What came back malicious: on record, and from the investigations run
   // here since.
   const bad =
@@ -319,14 +318,16 @@ export function ConsoleAppDetail() {
           count: issues,
           grave: issues > 0,
           settled: issues === 0,
-          standing: protocol
-            ? `L9 protocol configured, ${issues} still standing`
-            : "No protocol configured",
+          standing:
+            live.length > 0
+              ? `${live.join(" · ")} configured, ${issues} still standing`
+              : "No protocol configured",
           onOpen: () => setView("failures"),
           action: {
-            label: protocol
-              ? "Tighten the L9 protocol"
-              : "Configure L9 protocol",
+            label:
+              live.length > 0
+                ? "Tighten the L9 protocols"
+                : "Configure an L9 protocol",
             icon: <LuSlidersHorizontal size={14} aria-hidden />,
             onAct: () => {
               setPicking(true);
@@ -744,7 +745,6 @@ export function ConsoleAppDetail() {
             pick={pick}
             onPick={choose}
             picking={picking}
-            onAdded={() => setL9(true)}
           />
         </ConsoleDrawer>
       ) : null}

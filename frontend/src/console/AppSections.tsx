@@ -1415,12 +1415,9 @@ export function ProtocolsSection({
   pick,
   onPick,
   picking = false,
-  onAdded,
 }: Props & {
   /** Opened straight into the list to pick from, from a banner. */
   picking?: boolean;
-  /** Called the first time a protocol is put on. */
-  onAdded?: () => void;
 }) {
   // One protocol is open at a time, and what is open is what the traces
   // beside it are held to.
@@ -1452,7 +1449,6 @@ export function ProtocolsSection({
       );
       return;
     }
-    onAdded?.();
     setProtocols(detail.app.id, [...on, code]);
   };
 
