@@ -7989,8 +7989,12 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
 .ioc-journey-leg {
   grid-row: 2;
   position: relative;
+  /* A button centres its content when it is taller than the content; the
+     column keeps each step reading from its top edge down, whatever height
+     the row takes from the longest of them. */
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   cursor: pointer;
   border: 1px solid var(--ioc-glass-border);
   border-radius: 0.5rem;
@@ -8054,10 +8058,7 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   display: flex;
   align-items: center;
   gap: 0.2rem;
-  /* Every step offers its way in on the same line, whatever it had to say
-     above. */
-  margin-top: auto;
-  padding-top: 0.5rem;
+  margin-top: 0.5rem;
   color: var(--ioc-kicker);
   font-size: 11px;
   font-weight: 300;
