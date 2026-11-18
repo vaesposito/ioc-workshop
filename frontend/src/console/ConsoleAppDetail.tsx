@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import {
   LuCheck,
   LuChevronRight,
+  LuColumns3,
+  LuRoute,
   LuShieldBan,
   LuScanSearch,
   LuSlidersHorizontal,
@@ -38,6 +40,7 @@ import { ConsoleShell } from "./ConsoleShell";
 import { ConsoleDrawer } from "./ConsoleDrawer";
 import { ConsoleAlert, type Guidance } from "./ConsoleAlert";
 import { ConsoleTraceRow } from "./ConsoleTraceRow";
+import { ConsoleJourney } from "./ConsoleJourney";
 import { ConsoleProbe, PROBE_BEAT, PROBE_STEPS } from "./ConsoleProbe";
 import {
   rememberLook,
@@ -221,6 +224,9 @@ export function ConsoleAppDetail() {
     (entry) => entry.run.id,
   );
 
+  // An application is read one of two ways: the three columns, or the work
+  // in the order it happens.
+  const [mode, setMode] = useState<"columns" | "journey">("columns");
   const [choosing, setChoosing] = useState(false);
   const [chosen, setChosen] = useState<string[]>([]);
   const [probe, setProbe] = useState<"none" | "running">("none");
@@ -411,9 +417,29 @@ export function ConsoleAppDetail() {
         <span className="ioc-fg">{detail.app.name}</span>
       </nav>
 
-      <h1 className="ioc-title mt-2 text-[26px] font-light">
-        {detail.app.name}
-      </h1>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <h1 className="ioc-title text-[26px] font-light">{detail.app.name}</h1>
+        <div className="ioc-console-switch ml-auto" data-tour="app-modes">
+          <button
+            type="button"
+            aria-pressed={mode === "columns"}
+            onClick={() => setMode("columns")}
+            className={`ioc-console-switch-opt${mode === "columns" ? " is-on" : ""}`}
+          >
+            <LuColumns3 size={13} aria-hidden />
+            Readings
+          </button>
+          <button
+            type="button"
+            aria-pressed={mode === "journey"}
+            onClick={() => setMode("journey")}
+            className={`ioc-console-switch-opt${mode === "journey" ? " is-on" : ""}`}
+          >
+            <LuRoute size={13} aria-hidden />
+            Journey
+          </button>
+        </div>
+      </div>
 
       <ConsoleAlert items={alerts} />
 
@@ -424,250 +450,305 @@ export function ConsoleAppDetail() {
         />
       </DebateSection>
 
-      <div className="ioc-console-detail">
-        {/* ── What the application is made of ───────────────────────────── */}
-        <aside className="ioc-console-col ioc-no-scrollbar">
-          <p className="ioc-copy text-[12.5px] font-light leading-[1.55]">
-            {detail.headline}
-          </p>
-          <ul className="mt-2 flex flex-wrap gap-1.5">
-            {detail.tags.map((tag) => (
-              <li key={tag}>
-                <button
-                  type="button"
-                  aria-pressed={isPicked(pick, "topic", tag)}
-                  onClick={() => choose({ kind: "topic", id: tag, label: tag })}
-                  className={`ioc-console-tag is-link${
-                    isPicked(pick, "topic", tag) ? " is-picked" : ""
-                  }`}
-                >
-                  {tag}
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-4">
-            <DebateSection label="MAS topology">
-              <ConsoleTopology
-                nodes={detail.topology}
-                edges={detail.topologyEdges}
-                pick={pick}
-                onPick={choose}
+      {mode === "journey" ? (
+        <div className="mt-5">
+          {/* An investigation started from a step is watched here, since
+              the column that usually carries it is not on the page. */}
+          {probe === "running" && target ? (
+            <div className="mb-5 max-w-[640px]">
+              <p className="ioc-kicker">Investigation</p>
+              <ConsoleProbe
+                step={step}
+                said={
+                  chosen.length === 1
+                    ? `Running against ${target}.`
+                    : `Running against ${chosen.length} sessions, starting with ${target}.`
+                }
               />
-            </DebateSection>
-            <DebateSection label="Agents" preview={`${detail.agents.length}`}>
-              <ul className="flex flex-col gap-1.5">
-                {detail.agents.map((agent) => (
-                  <li key={agent.name}>
-                    <button
-                      type="button"
-                      aria-pressed={isPicked(pick, "agent", agent.name)}
-                      onClick={() =>
-                        choose({
-                          kind: "agent",
-                          id: agent.name,
-                          label: agent.name,
-                        })
-                      }
-                      className={`ioc-console-row is-link${
-                        isPicked(pick, "agent", agent.name) ? " is-picked" : ""
-                      }`}
-                    >
-                      <span className="ioc-fg">{agent.name}</span>
-                      <span className="ioc-faint">{agent.role}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </DebateSection>
-            <DebateSection
-              label="Models"
-              preview={`${detail.llms.length}`}
-              defaultOpen={false}
-            >
-              <ul className="flex flex-col gap-1.5">
-                {detail.llms.map((llm) => (
-                  <li key={llm.name}>
-                    <button
-                      type="button"
-                      aria-pressed={isPicked(pick, "agent", llm.name)}
-                      onClick={() =>
-                        choose({ kind: "agent", id: llm.name, label: llm.name })
-                      }
-                      className={`ioc-console-row is-link${
-                        isPicked(pick, "agent", llm.name) ? " is-picked" : ""
-                      }`}
-                    >
-                      <span className="ioc-fg">{llm.name}</span>
-                      <span className="ioc-faint">{llm.role}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </DebateSection>
-            <DebateSection
-              label="Tools"
-              preview={`${detail.tools.length}`}
-              defaultOpen={false}
-            >
-              <ul className="flex flex-wrap gap-1.5">
-                {detail.tools.map((tool) => (
-                  <li key={tool}>
-                    <button
-                      type="button"
-                      aria-pressed={isPicked(pick, "tool", tool)}
-                      onClick={() =>
-                        choose({ kind: "tool", id: tool, label: tool })
-                      }
-                      className={`ioc-console-tag is-link${
-                        isPicked(pick, "tool", tool) ? " is-picked" : ""
-                      }`}
-                    >
-                      {tool}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </DebateSection>
-          </div>
-        </aside>
-
-        {/* ── The health score, and a way into each other reading ──────── */}
-        <section className="ioc-console-middle">
-          <div className="ioc-console-col ioc-no-scrollbar flex-1">
-            {probe === "running" && target ? (
-              <div className="mb-6">
-                <p className="ioc-kicker">Investigation</p>
-                <ConsoleProbe
-                  step={step}
-                  said={
-                    chosen.length === 1
-                      ? `Running against ${target}.`
-                      : `Running against ${chosen.length} sessions, starting with ${target}.`
-                  }
-                />
-              </div>
-            ) : null}
-
-            <h2 className="ioc-fg text-[15px] font-light">Health score</h2>
-            <p className="ioc-console-note">
-              How the application is holding up overall, and the counts the
-              score is read against.
-            </p>
-            <div className="mt-4">
-              <HealthSection detail={detail} pick={pick} onPick={choose} />
             </div>
-
-            {/* What an investigation left behind, which outlives the page
-                it was decided on. */}
-            {forced.length > 0 ? (
-              <div className="mt-7">
-                <p className="ioc-kicker">Enforcement in place</p>
-                <p className="ioc-faint text-[11px] font-light">
-                  Taken off the back of an investigation, and in force until the
-                  reset in the top bar drops them.
-                </p>
-                <ul className="mt-2 flex flex-col gap-1.5">
-                  {forced.map((entry) => (
-                    <li
-                      key={`${entry.session}-${entry.move}`}
-                      className="ioc-console-force"
-                    >
-                      <LuShieldBan
-                        size={13}
-                        aria-hidden
-                        className="shrink-0 text-[#f05252]"
-                      />
-                      <span className="ioc-fg min-w-0 flex-1 text-[12px]">
-                        {entry.label}
-                      </span>
-                      <Link
-                        to={`/console/apps/${detail.app.id}/traces/${entry.session}`}
-                        className="ioc-link shrink-0 text-[11px]"
-                      >
-                        {entry.session}
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          settleMove({ ...entry, standing: "open" })
-                        }
-                        className="ioc-link shrink-0 text-[11px]"
-                      >
-                        Lift
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            <p className="ioc-kicker mt-7">Observability</p>
-            <ul className="ioc-console-triggers" data-tour="app-observability">
-              {VIEWS.map((entry) => (
-                <li key={entry.id}>
+          ) : null}
+          <ConsoleJourney
+            detail={detail}
+            risks={risks}
+            live={live}
+            forced={forced}
+            looked={looked}
+            bad={bad}
+            canInvestigate={open.length > 0 && probe !== "running"}
+            onOverview={() => setMode("columns")}
+            onView={(next) => setView(next as ViewId)}
+            onProtocols={() => {
+              setPicking(true);
+              setView("protocols");
+            }}
+            onInvestigate={() => {
+              if (probe === "running") return;
+              if (open.length === 0) {
+                setView("security");
+                return;
+              }
+              setChosen(advised);
+              setChoosing(true);
+            }}
+          />
+        </div>
+      ) : (
+        <div className="ioc-console-detail">
+          {/* ── What the application is made of ───────────────────────────── */}
+          <aside className="ioc-console-col ioc-no-scrollbar">
+            <p className="ioc-copy text-[12.5px] font-light leading-[1.55]">
+              {detail.headline}
+            </p>
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {detail.tags.map((tag) => (
+                <li key={tag}>
                   <button
                     type="button"
-                    onClick={() => setView(entry.id)}
-                    className="ioc-console-trigger"
+                    aria-pressed={isPicked(pick, "topic", tag)}
+                    onClick={() =>
+                      choose({ kind: "topic", id: tag, label: tag })
+                    }
+                    className={`ioc-console-tag is-link${
+                      isPicked(pick, "topic", tag) ? " is-picked" : ""
+                    }`}
                   >
-                    <span className="min-w-0 flex-1">
-                      <span className="ioc-fg block text-[12.5px]">
-                        {entry.title}
-                      </span>
-                      <span className="ioc-faint mt-0.5 block text-[11px] leading-[1.45] font-light">
-                        {teaseOf(entry.id, detail)}
-                      </span>
-                    </span>
-                    {entry.id === "failures" &&
-                    detail.summary.cognitiveFailures > 0 ? (
-                      <span className="ioc-console-chip is-bad shrink-0">
-                        {detail.summary.cognitiveFailures} found
-                      </span>
-                    ) : null}
-                    <LuChevronRight size={14} aria-hidden />
+                    {tag}
                   </button>
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
 
-        {/* ── What has run through it ───────────────────────────────────── */}
-        <aside className="ioc-console-col ioc-no-scrollbar">
-          <p className="ioc-kicker">Traces list</p>
-          {pick ? (
-            <p className="ioc-console-filter">
-              <span className="truncate">{pick.label}</span>
-              <span className="ioc-faint shrink-0">
-                {lit.size} of {detail.sessions.length}
-              </span>
-              <button
-                type="button"
-                onClick={() => setPick(null)}
-                className="ioc-link shrink-0"
-              >
-                Clear
-              </button>
-            </p>
-          ) : null}
-          <ul className="ioc-console-sessions mt-2 flex flex-col">
-            {detail.sessions.map((entry) => (
-              <li key={entry.id}>
-                <ConsoleTraceRow
-                  usual={usualCost(detail.sessions)}
-                  appId={detail.app.id}
-                  session={entry}
-                  verdict={verdictOf(entry)}
-                  lit={lit.has(entry.id)}
-                  far={Boolean(pick) && !lit.has(entry.id)}
+            <div className="mt-4">
+              <DebateSection label="MAS topology">
+                <ConsoleTopology
+                  nodes={detail.topology}
+                  edges={detail.topologyEdges}
+                  pick={pick}
+                  onPick={choose}
                 />
-              </li>
-            ))}
-          </ul>
-        </aside>
-      </div>
+              </DebateSection>
+              <DebateSection label="Agents" preview={`${detail.agents.length}`}>
+                <ul className="flex flex-col gap-1.5">
+                  {detail.agents.map((agent) => (
+                    <li key={agent.name}>
+                      <button
+                        type="button"
+                        aria-pressed={isPicked(pick, "agent", agent.name)}
+                        onClick={() =>
+                          choose({
+                            kind: "agent",
+                            id: agent.name,
+                            label: agent.name,
+                          })
+                        }
+                        className={`ioc-console-row is-link${
+                          isPicked(pick, "agent", agent.name)
+                            ? " is-picked"
+                            : ""
+                        }`}
+                      >
+                        <span className="ioc-fg">{agent.name}</span>
+                        <span className="ioc-faint">{agent.role}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </DebateSection>
+              <DebateSection
+                label="Models"
+                preview={`${detail.llms.length}`}
+                defaultOpen={false}
+              >
+                <ul className="flex flex-col gap-1.5">
+                  {detail.llms.map((llm) => (
+                    <li key={llm.name}>
+                      <button
+                        type="button"
+                        aria-pressed={isPicked(pick, "agent", llm.name)}
+                        onClick={() =>
+                          choose({
+                            kind: "agent",
+                            id: llm.name,
+                            label: llm.name,
+                          })
+                        }
+                        className={`ioc-console-row is-link${
+                          isPicked(pick, "agent", llm.name) ? " is-picked" : ""
+                        }`}
+                      >
+                        <span className="ioc-fg">{llm.name}</span>
+                        <span className="ioc-faint">{llm.role}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </DebateSection>
+              <DebateSection
+                label="Tools"
+                preview={`${detail.tools.length}`}
+                defaultOpen={false}
+              >
+                <ul className="flex flex-wrap gap-1.5">
+                  {detail.tools.map((tool) => (
+                    <li key={tool}>
+                      <button
+                        type="button"
+                        aria-pressed={isPicked(pick, "tool", tool)}
+                        onClick={() =>
+                          choose({ kind: "tool", id: tool, label: tool })
+                        }
+                        className={`ioc-console-tag is-link${
+                          isPicked(pick, "tool", tool) ? " is-picked" : ""
+                        }`}
+                      >
+                        {tool}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </DebateSection>
+            </div>
+          </aside>
+
+          {/* ── The health score, and a way into each other reading ──────── */}
+          <section className="ioc-console-middle">
+            <div className="ioc-console-col ioc-no-scrollbar flex-1">
+              {probe === "running" && target ? (
+                <div className="mb-6">
+                  <p className="ioc-kicker">Investigation</p>
+                  <ConsoleProbe
+                    step={step}
+                    said={
+                      chosen.length === 1
+                        ? `Running against ${target}.`
+                        : `Running against ${chosen.length} sessions, starting with ${target}.`
+                    }
+                  />
+                </div>
+              ) : null}
+
+              <h2 className="ioc-fg text-[15px] font-light">Health score</h2>
+              <p className="ioc-console-note">
+                How the application is holding up overall, and the counts the
+                score is read against.
+              </p>
+              <div className="mt-4">
+                <HealthSection detail={detail} pick={pick} onPick={choose} />
+              </div>
+
+              {/* What an investigation left behind, which outlives the page
+                it was decided on. */}
+              {forced.length > 0 ? (
+                <div className="mt-7">
+                  <p className="ioc-kicker">Enforcement in place</p>
+                  <p className="ioc-faint text-[11px] font-light">
+                    Taken off the back of an investigation, and in force until
+                    the reset in the top bar drops them.
+                  </p>
+                  <ul className="mt-2 flex flex-col gap-1.5">
+                    {forced.map((entry) => (
+                      <li
+                        key={`${entry.session}-${entry.move}`}
+                        className="ioc-console-force"
+                      >
+                        <LuShieldBan
+                          size={13}
+                          aria-hidden
+                          className="shrink-0 text-[#f05252]"
+                        />
+                        <span className="ioc-fg min-w-0 flex-1 text-[12px]">
+                          {entry.label}
+                        </span>
+                        <Link
+                          to={`/console/apps/${detail.app.id}/traces/${entry.session}`}
+                          className="ioc-link shrink-0 text-[11px]"
+                        >
+                          {entry.session}
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            settleMove({ ...entry, standing: "open" })
+                          }
+                          className="ioc-link shrink-0 text-[11px]"
+                        >
+                          Lift
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <p className="ioc-kicker mt-7">Observability</p>
+              <ul
+                className="ioc-console-triggers"
+                data-tour="app-observability"
+              >
+                {VIEWS.map((entry) => (
+                  <li key={entry.id}>
+                    <button
+                      type="button"
+                      onClick={() => setView(entry.id)}
+                      className="ioc-console-trigger"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="ioc-fg block text-[12.5px]">
+                          {entry.title}
+                        </span>
+                        <span className="ioc-faint mt-0.5 block text-[11px] leading-[1.45] font-light">
+                          {teaseOf(entry.id, detail)}
+                        </span>
+                      </span>
+                      {entry.id === "failures" &&
+                      detail.summary.cognitiveFailures > 0 ? (
+                        <span className="ioc-console-chip is-bad shrink-0">
+                          {detail.summary.cognitiveFailures} found
+                        </span>
+                      ) : null}
+                      <LuChevronRight size={14} aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          {/* ── What has run through it ───────────────────────────────────── */}
+          <aside className="ioc-console-col ioc-no-scrollbar">
+            <p className="ioc-kicker">Traces list</p>
+            {pick ? (
+              <p className="ioc-console-filter">
+                <span className="truncate">{pick.label}</span>
+                <span className="ioc-faint shrink-0">
+                  {lit.size} of {detail.sessions.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPick(null)}
+                  className="ioc-link shrink-0"
+                >
+                  Clear
+                </button>
+              </p>
+            ) : null}
+            <ul className="ioc-console-sessions mt-2 flex flex-col">
+              {detail.sessions.map((entry) => (
+                <li key={entry.id}>
+                  <ConsoleTraceRow
+                    usual={usualCost(detail.sessions)}
+                    appId={detail.app.id}
+                    session={entry}
+                    verdict={verdictOf(entry)}
+                    lit={lit.has(entry.id)}
+                    far={Boolean(pick) && !lit.has(entry.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </aside>
+        </div>
+      )}
 
       {/* Which sessions to spend an investigation on, put forward but not
           decided: several can go at once. */}
