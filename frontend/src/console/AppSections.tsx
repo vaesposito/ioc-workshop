@@ -1398,10 +1398,9 @@ export function ProtocolsSection({
   picking?: boolean;
 }) {
   // One protocol is open at a time, and what is open is what the traces
-  // beside it are held to.
-  const [open, setOpen] = useState<string | null>(
-    detail.protocols[0]?.code ?? null,
-  );
+  // beside it are held to. The list opens closed: it is read as a list
+  // first, and opened where there is a reason to.
+  const [open, setOpen] = useState<string | null>(null);
   // Which protocols are on. The list is read as it stands; picking from it
   // is a thing you go into, so the reading is not a form. What is on is
   // held for the demo, so leaving the page does not put it back.
