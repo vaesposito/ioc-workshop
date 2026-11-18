@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   LuCheck,
   LuChevronRight,
+  LuShieldBan,
   LuScanSearch,
   LuSlidersHorizontal,
 } from "react-icons/lu";
@@ -27,6 +28,7 @@ import {
   detailFor,
   usualCost,
   type AppDetail,
+  type SessionRow,
 } from "./appDetailData";
 import { ConsoleTopology } from "./ConsoleTopology";
 import { ConsoleOverview } from "./ConsoleOverview";
@@ -36,6 +38,11 @@ import { ConsoleDrawer } from "./ConsoleDrawer";
 import { ConsoleAlert, type Guidance } from "./ConsoleAlert";
 import { ConsoleTraceRow } from "./ConsoleTraceRow";
 import { ConsoleProbe, PROBE_BEAT, PROBE_STEPS } from "./ConsoleProbe";
+import {
+  rememberLook,
+  settleMove,
+  useConsoleStanding,
+} from "./consoleStanding";
 
 /** The readings, each opened in the drawer from the middle column. */
 const VIEWS = [
@@ -175,9 +182,22 @@ export function ConsoleAppDetail() {
   // An investigation runs against whichever sessions are picked for it. The
   // ones that are off in some way are put forward, since they are the ones
   // worth the time, but the choice is the reader's.
+  // What has been done from these pages since the demo was last reset:
+  // the investigations run on this application, and the controls taken off
+  // the back of them, both still in force on the way back here.
+  const standing = useConsoleStanding();
+  const mine = standing.looked.filter((entry) => entry.app === detail?.app.id);
+  const forced = standing.taken.filter(
+    (entry) => entry.app === detail?.app.id && entry.standing === "held",
+  );
+  const verdictOf = (run: SessionRow): SessionRow["verdict"] =>
+    run.investigated
+      ? run.verdict
+      : mine.find((entry) => entry.session === run.id)?.verdict;
+
   const usual = usualCost(detail?.sessions ?? []);
   const open = (detail?.sessions ?? [])
-    .filter((run) => !run.investigated)
+    .filter((run) => !verdictOf(run))
     .map((run) => {
       const over = usual > 0 ? run.costScore / usual - 1 : 0;
       const why = [
@@ -217,14 +237,22 @@ export function ConsoleAppDetail() {
         if (current < PROBE_STEPS.length - 1) return current + 1;
         window.clearInterval(timer);
         setProbe("none");
-        navigate(
-          `/console/apps/${detail.app.id}/traces/${target}?investigated=1`,
-        );
+        // Every session it was run against is investigated from here on,
+        // not only the one the console opens next.
+        for (const id of chosen) {
+          const run = detail.sessions.find((entry) => entry.id === id);
+          rememberLook({
+            app: detail.app.id,
+            session: id,
+            verdict: (run?.failures ?? 0) >= 2 ? "malicious" : "clean",
+          });
+        }
+        navigate(`/console/apps/${detail.app.id}/traces/${target}`);
         return current;
       });
     }, PROBE_BEAT);
     return () => window.clearInterval(timer);
-  }, [probe, detail, target, navigate]);
+  }, [probe, detail, target, chosen, navigate]);
   // Nothing is open until a reading is asked for, and then it comes over
   // the page rather than squeezing into the column.
   // A reading can be asked for in the address, which is how the tour opens
@@ -260,19 +288,26 @@ export function ConsoleAppDetail() {
   // What is past what should pass without a look, and the step that answers
   // it: a protocol to tighten where the answers are slipping, an
   // investigation where the application is being pushed at.
-  const looked = (detail?.sessions ?? []).filter(
-    (run) => run.investigated,
+  const looked = (detail?.sessions ?? []).filter((run) =>
+    Boolean(verdictOf(run)),
   ).length;
   // Runs that ended badly without anybody looking into them: a reason to
   // look, counted beside the calls that were refused.
   const applied = detail?.app.applied;
-  const held = applied ? applied.blockedAgents + applied.blockedCalls : 0;
+  const held =
+    (applied ? applied.blockedAgents + applied.blockedCalls : 0) +
+    forced.length;
   const issues = detail
     ? detail.summary.cognitiveFailures + detail.summary.fatalErrors
     : 0;
   const protocol = l9 || (detail?.app.applied.protocols ?? 0) > 0;
+  // What came back malicious: on record, and from the investigations run
+  // here since.
+  const bad =
+    (detail?.summary.maliciousTraces ?? 0) +
+    mine.filter((entry) => entry.verdict === "malicious").length;
   const rough = (detail?.sessions ?? []).filter(
-    (run) => run.status === "error" && !run.investigated,
+    (run) => run.status === "error" && !verdictOf(run),
   ).length;
   const alerts: Guidance[] = !detail
     ? []
@@ -304,28 +339,22 @@ export function ConsoleAppDetail() {
           // Nothing is a security issue until an investigation says so. What
           // can be said beforehand is that something is worth a look.
           hint:
-            detail.summary.maliciousTraces > 0
+            bad > 0
               ? "An investigation traced these sessions back to where they started; what it found can be enforced from the session's own page."
               : "Refused calls and sessions that ended badly are risks, not findings. An investigation is what turns one into the other.",
-          label:
-            detail.summary.maliciousTraces > 0
-              ? "Security issues"
-              : "Potential security risks",
-          count:
-            detail.summary.maliciousTraces > 0
-              ? detail.summary.maliciousTraces
-              : detail.summary.deniedCalls + rough,
-          grave: detail.summary.maliciousTraces > 0,
+          label: bad > 0 ? "Security issues" : "Potential security risks",
+          count: bad > 0 ? bad : detail.summary.deniedCalls + rough,
+          grave: bad > 0,
           settled: false,
           standing:
             probe === "running"
               ? `Investigating ${chosen.length} ${
                   chosen.length === 1 ? "session" : "sessions"
                 }`
-              : detail.summary.maliciousTraces > 0
+              : bad > 0
                 ? held > 0
-                  ? `${detail.summary.maliciousTraces} malicious, ${held} ${held === 1 ? "control" : "controls"} in place`
-                  : `${detail.summary.maliciousTraces} of ${looked} investigated traces came back malicious`
+                  ? `${bad} malicious, ${held} ${held === 1 ? "control" : "controls"} in place`
+                  : `${bad} of ${looked} investigated traces came back malicious`
                 : looked > 0
                   ? `${looked} of ${detail.sessions.length} traces investigated, nothing malicious found`
                   : "Nothing investigated yet",
@@ -515,6 +544,50 @@ export function ConsoleAppDetail() {
               <HealthSection detail={detail} pick={pick} onPick={choose} />
             </div>
 
+            {/* What an investigation left behind, which outlives the page
+                it was decided on. */}
+            {forced.length > 0 ? (
+              <div className="mt-7">
+                <p className="ioc-kicker">Enforcement in place</p>
+                <p className="ioc-faint text-[11px] font-light">
+                  Taken off the back of an investigation, and in force until the
+                  reset in the top bar drops them.
+                </p>
+                <ul className="mt-2 flex flex-col gap-1.5">
+                  {forced.map((entry) => (
+                    <li
+                      key={`${entry.session}-${entry.move}`}
+                      className="ioc-console-force"
+                    >
+                      <LuShieldBan
+                        size={13}
+                        aria-hidden
+                        className="shrink-0 text-[#f05252]"
+                      />
+                      <span className="ioc-fg min-w-0 flex-1 text-[12px]">
+                        {entry.label}
+                      </span>
+                      <Link
+                        to={`/console/apps/${detail.app.id}/traces/${entry.session}`}
+                        className="ioc-link shrink-0 text-[11px]"
+                      >
+                        {entry.session}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          settleMove({ ...entry, standing: "open" })
+                        }
+                        className="ioc-link shrink-0 text-[11px]"
+                      >
+                        Lift
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
             <p className="ioc-kicker mt-7">Observability</p>
             <ul className="ioc-console-triggers" data-tour="app-observability">
               {VIEWS.map((entry) => (
@@ -571,6 +644,7 @@ export function ConsoleAppDetail() {
                   usual={usualCost(detail.sessions)}
                   appId={detail.app.id}
                   session={entry}
+                  verdict={verdictOf(entry)}
                   lit={lit.has(entry.id)}
                   far={Boolean(pick) && !lit.has(entry.id)}
                 />

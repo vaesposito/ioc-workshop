@@ -8556,6 +8556,17 @@ html:not([data-theme="light"]) .ioc-bubble-orb.is-watch .ioc-bubble-disc {
   background: color-mix(in srgb, #f6a356 8%, transparent);
 }
 
+/* One control an investigation left in force, as the application lists it. */
+.ioc-console-force {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--ioc-glass-border);
+  border-left: 2px solid color-mix(in srgb, #f05252 60%, transparent);
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.6rem;
+}
+
 /* The list a protocol is picked from: on or off, one row each. */
 .ioc-console-picks {
   display: flex;

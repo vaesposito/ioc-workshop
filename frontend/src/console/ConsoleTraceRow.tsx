@@ -10,12 +10,15 @@ import { COST_LOOSE, type SessionRow } from "./appDetailData";
 export function ConsoleTraceRow({
   appId,
   session,
+  verdict = session.verdict,
   usual = 0,
   lit = false,
   far = false,
 }: {
   appId: string;
   session: SessionRow;
+  /** What an investigation made of it, where one has been run since. */
+  verdict?: SessionRow["verdict"];
   /** What a session on this application usually costs, where the list knows. */
   usual?: number;
   /** Set where something picked on the page was part of this run. */
@@ -60,12 +63,12 @@ export function ConsoleTraceRow({
         >
           cost {session.costScore}
         </span>
-        {session.investigated ? (
+        {verdict ? (
           <span
-            className={`ioc-console-pill${session.verdict === "malicious" ? " is-danger" : ""}`}
-            title={`An investigation on this session came back ${session.verdict}.`}
+            className={`ioc-console-pill${verdict === "malicious" ? " is-danger" : ""}`}
+            title={`An investigation on this session came back ${verdict}.`}
           >
-            {session.verdict}
+            {verdict}
           </span>
         ) : null}
         <span className="ioc-faint ml-auto text-[10.5px]">

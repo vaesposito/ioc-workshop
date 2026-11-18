@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   LuBan,
   LuBot,
@@ -18,7 +18,14 @@ import { ConsoleDrawer } from "./ConsoleDrawer";
 import { ConsoleDial } from "./ConsoleDial";
 import { ConsoleTopology } from "./ConsoleTopology";
 import { ConsoleAlert, type Guidance } from "./ConsoleAlert";
-import { ConsoleEnforcement, type Standing } from "./ConsoleEnforcement";
+import { ConsoleEnforcement, movesFor } from "./ConsoleEnforcement";
+import {
+  rememberLook,
+  settleMove,
+  standingOn,
+  useConsoleStanding,
+  type Standing,
+} from "./consoleStanding";
 import { ConsoleProbe, PROBE_BEAT, PROBE_STEPS } from "./ConsoleProbe";
 import { findingsFor } from "./consoleReading";
 import { traceOf, type TraceEntry } from "./consoleTrace";
@@ -308,18 +315,13 @@ export function ConsoleTraceView() {
   const [struck, setStruck] = useState(false);
   const [opened, setOpened] = useState<Set<string>>(new Set());
   const [seat, setSeat] = useState<string | null>(null);
-  const [taken, setTaken] = useState<Record<string, Standing>>({});
-  const settle = (id: string, standing: Standing) =>
-    setTaken((current) => ({ ...current, [id]: standing }));
-  const enforced = Object.values(taken).filter(
-    (entry) => entry === "held",
-  ).length;
+  // What has been done about this session is held for the whole demo, not
+  // for this page: a control taken here is still in force on the
+  // application, and on this page when it is opened again.
+  const standing = useConsoleStanding();
   // An investigation run from this page: it walks its steps, then the page
   // can say what it made of the session.
-  const [params] = useSearchParams();
-  const [probe, setProbe] = useState<"none" | "running" | "done">(
-    params.get("investigated") ? "done" : "none",
-  );
+  const [probe, setProbe] = useState<"none" | "running" | "done">("none");
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -334,6 +336,19 @@ export function ConsoleTraceView() {
     }, PROBE_BEAT);
     return () => window.clearInterval(timer);
   }, [probe]);
+
+  // An investigation run from here is remembered for the demo, so the
+  // session still reads as investigated once this page is left.
+  useEffect(() => {
+    if (probe !== "done" || !detail || !session) return;
+    rememberLook({
+      app: detail.app.id,
+      session: session.id,
+      verdict:
+        session.verdict ?? (session.failures >= 2 ? "malicious" : "clean"),
+    });
+  }, [probe, detail, session]);
+
   const choose = (next: ConsolePick) =>
     setPick((current) =>
       current && current.kind === next.kind && current.id === next.id
@@ -444,12 +459,17 @@ export function ConsoleTraceView() {
 
   // What is known about this session: what was on record, and anything the
   // investigation just run from this page turned up.
-  const looked = session.investigated || probe === "done";
+  const seen = standing.looked.find(
+    (entry) => entry.app === detail.app.id && entry.session === session.id,
+  );
+  const looked = session.investigated || probe === "done" || Boolean(seen);
   const verdict = session.investigated
     ? session.verdict
-    : session.failures >= 2
-      ? "malicious"
-      : "clean";
+    : seen
+      ? seen.verdict
+      : session.failures >= 2
+        ? "malicious"
+        : "clean";
   const suspects =
     session.suspects.length > 0
       ? session.suspects
@@ -465,6 +485,27 @@ export function ConsoleTraceView() {
 
   // What the investigation made of the agents, read the way an investigation
   // reads it: the same debate, carrying this session's names.
+  // The controls this investigation leaves to take, and which way each one
+  // has already gone.
+  const moves = movesFor({ detail, session, suspects });
+  const taken = standingOn(standing.taken, detail.app.id, session.id);
+  const enforced = Object.values(taken).filter(
+    (entry) => entry === "held",
+  ).length;
+  const settle = (move: string, next: Standing) => {
+    const offer = moves.find((entry) => entry.id === move);
+    settleMove({
+      app: detail.app.id,
+      session: session.id,
+      move,
+      standing: next,
+      label:
+        next === "held"
+          ? (offer?.hold.taken ?? move)
+          : (offer?.let.taken ?? move),
+    });
+  };
+
   const found =
     looked && verdict
       ? findingsFor({ detail, session, trace, verdict, suspects, carried })

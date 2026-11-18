@@ -15,6 +15,7 @@ import { DebateSection } from "../components/DebateSection";
 
 import { ConsoleDial } from "./ConsoleDial";
 import { ConsoleTraceRow } from "./ConsoleTraceRow";
+import { setProtocols, useConsoleStanding } from "./consoleStanding";
 import { compact } from "./consoleData";
 import {
   PROTOCOL_OFFERS,
@@ -1428,10 +1429,12 @@ export function ProtocolsSection({
     detail.protocols[0]?.code ?? null,
   );
   // Which protocols are on. The list is read as it stands; picking from it
-  // is a thing you go into, so the reading is not a form.
-  const [on, setOn] = useState<string[]>(
-    detail.protocols.map((entry) => entry.code),
-  );
+  // is a thing you go into, so the reading is not a form. What is on is
+  // held for the demo, so leaving the page does not put it back.
+  const standing = useConsoleStanding();
+  const on =
+    standing.protocols[detail.app.id] ??
+    detail.protocols.map((entry) => entry.code);
   const [editing, setEditing] = useState(picking);
 
   const offered = PROTOCOL_OFFERS.filter(
@@ -1449,14 +1452,17 @@ export function ProtocolsSection({
   const live = detail.protocols.filter((entry) => on.includes(entry.code));
   const added = offered.filter((offer) => on.includes(offer.code));
 
-  const toggle = (code: string) =>
-    setOn((current) => {
-      if (current.includes(code)) {
-        return current.filter((entry) => entry !== code);
-      }
-      onAdded?.();
-      return [...current, code];
-    });
+  const toggle = (code: string) => {
+    if (on.includes(code)) {
+      setProtocols(
+        detail.app.id,
+        on.filter((entry) => entry !== code),
+      );
+      return;
+    }
+    onAdded?.();
+    setProtocols(detail.app.id, [...on, code]);
+  };
 
   const terms = live.reduce(
     (count, protocol) =>

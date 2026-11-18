@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { NavLink, useSearchParams } from "react-router-dom";
 import { applyTheme, readStoredTheme } from "../utils/theme";
 import { CONSOLE_TOUR, ConsoleTour } from "./ConsoleTour";
+import { resetConsole } from "./consoleStanding";
 
 /**
  * The console's mark: three agents with a line to each of the others and a
@@ -120,7 +121,10 @@ export function ConsoleShell({
             className="ioc-icon-btn"
             aria-label="Reset the demo"
             title="Reset the demo: drops protocols, blocks and investigations run from these pages"
-            onClick={() => window.location.assign(window.location.pathname)}
+            onClick={() => {
+              resetConsole();
+              window.location.assign(window.location.pathname);
+            }}
           >
             <LuRotateCcw size={15} />
           </button>

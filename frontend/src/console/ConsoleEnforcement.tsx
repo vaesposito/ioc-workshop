@@ -9,10 +9,9 @@ import {
 } from "react-icons/lu";
 
 import type { AppDetail, SessionRow } from "./appDetailData";
+import type { Standing } from "./consoleStanding";
 
-export type Standing = "open" | "held" | "let";
-
-interface Move {
+export interface Move {
   id: string;
   /** What was found, in the words the detectors used. */
   evidence: string;
@@ -25,40 +24,31 @@ interface Move {
 
 /**
  * What an investigation leaves behind: what it found, and the two ways each
- * finding can be answered. Nothing is enforced from here in the demo, so a
- * decision is only remembered on the page.
+ * finding can be answered. Nothing is enforced from here in the demo; what
+ * is decided is held for the console and listed on the application.
  */
-export function ConsoleEnforcement({
+/**
+ * The controls an investigation of this session leaves to take, in the
+ * order they are offered. Written out here rather than in the panel, since
+ * the page remembers them by the words each one is taken under.
+ */
+export function movesFor({
   detail,
   session,
-  looked,
   suspects,
-  taken,
-  onSettle,
 }: {
   detail: AppDetail;
   session: SessionRow;
-  /** Whether an investigation has been through this session. */
-  looked: boolean;
-  /** Agents it read as driving the fault. */
   suspects: string[];
-  /** Which way each recommendation has gone, so far. */
-  taken: Record<string, Standing>;
-  onSettle: (id: string, standing: Standing) => void;
-}) {
-  const settle = onSettle;
-
-  // Nothing is proposed off the back of a run nobody has looked into yet.
-  if (!looked) return null;
-
+}): Move[] {
   const suspect = suspects[0] ?? session.agents[1] ?? "an agent";
   const tool = session.tools[0] ?? detail.tools[0] ?? "a tool";
   const events = detail.insights.filter(
     (insight) => insight.session === session.id,
   );
-  if (events.length === 0) return null;
+  if (events.length === 0) return [];
 
-  const moves: Move[] = [
+  return [
     {
       id: "block",
       evidence: `${suspect} was read as driving the fault, and the answer went out carrying it.`,
@@ -105,13 +95,40 @@ export function ConsoleEnforcement({
       },
     },
   ];
+}
+
+export function ConsoleEnforcement({
+  detail,
+  session,
+  looked,
+  suspects,
+  taken,
+  onSettle,
+}: {
+  detail: AppDetail;
+  session: SessionRow;
+  /** Whether an investigation has been through this session. */
+  looked: boolean;
+  /** Agents it read as driving the fault. */
+  suspects: string[];
+  /** Which way each recommendation has gone, so far. */
+  taken: Record<string, Standing>;
+  onSettle: (id: string, standing: Standing) => void;
+}) {
+  const settle = onSettle;
+
+  // Nothing is proposed off the back of a run nobody has looked into yet.
+  if (!looked) return null;
+
+  const moves = movesFor({ detail, session, suspects });
+  if (moves.length === 0) return null;
 
   return (
     <div data-tour="trace-enforcement">
       <p className="ioc-kicker">Enforcement</p>
       <p className="ioc-faint text-[11px] font-light">
         What the investigation of {session.id} leaves to decide. Whichever way
-        each one goes is remembered on this page only.
+        each one goes holds across the console until the demo is reset.
       </p>
       <ul className="mt-3 flex flex-col gap-2.5">
         {moves.map((move) => {
